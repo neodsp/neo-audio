@@ -1,0 +1,22 @@
+[workspace]
+resolver = "2"
+members = ["crates/system-audio", "crates/rt-tools", "crates/neo-audio"]
+
+[workspace.package]
+edition = "2021"
+rust-version = "1.72"
+version = "0.1.0"
+
+[profile.dev.package."*"]
+# Optimize all dependencies in debug build
+opt-level = 2
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[workspace.dependencies]
+system-audio = { path = "crates/system-audio" }
+rt-tools = { path = "crates/rt-tools" }
+
+serde = "1.0.197"
+thiserror = "1.0.58"
+rtaudio = "0.3.3"
