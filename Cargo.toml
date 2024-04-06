@@ -5,7 +5,8 @@ members = [
   "crates/rt-tools",
   "crates/neo-audio",
 
-  "examples/*",
+  # "examples/*",
+  "examples/tauri-example/src-tauri",
 ]
 
 [workspace.package]
