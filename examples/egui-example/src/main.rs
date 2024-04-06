@@ -15,6 +15,7 @@ struct MyEguiApp {
     neo_audio: NeoAudio<RtAudioBackend, MyMessage>,
     audio_running: bool,
     config: DeviceConfig,
+    gain: f32,
 }
 
 impl MyEguiApp {
@@ -30,6 +31,7 @@ impl MyEguiApp {
             audio_running: false,
             config: system_audio.config(),
             neo_audio,
+            gain: 1.0,
         }
     }
 }
@@ -142,6 +144,15 @@ impl eframe::App for MyEguiApp {
                     self.neo_audio.start_audio(MyProcessor::default()).unwrap();
                     self.audio_running = true;
                 }
+            }
+
+            if ui
+                .add(egui::Slider::new(&mut self.gain, 0.0..=1.0).text("Gain"))
+                .changed()
+            {
+                self.neo_audio
+                    .send_message(MyMessage::Gain(self.gain))
+                    .unwrap();
             }
         });
     }
