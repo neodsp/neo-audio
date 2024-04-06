@@ -12,7 +12,7 @@ fn main() {
 }
 
 struct MyEguiApp {
-    neo_audio: NeoAudio<SystemRtAudio, MyMessage>,
+    neo_audio: NeoAudio<RtAudioBackend, MyMessage>,
     audio_running: bool,
     config: DeviceConfig,
 }
@@ -23,7 +23,7 @@ impl MyEguiApp {
         // Restore app state using cc.storage (requires the "persistence" feature).
         // Use the cc.gl (a glow::Context) to create graphics shaders and buffers that you can use
         // for e.g. egui::PaintCallback.
-        let neo_audio = NeoAudio::<SystemRtAudio, MyMessage>::new().unwrap();
+        let neo_audio = NeoAudio::<RtAudioBackend, MyMessage>::new().unwrap();
         let system_audio = neo_audio.system_audio();
         dbg!(system_audio);
         Self {

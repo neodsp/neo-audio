@@ -2,7 +2,7 @@ use neo_audio::prelude::*;
 
 fn main() -> Result<(), NeoAudioError> {
     // construct audio engine with selected backend and message type
-    let mut neo_audio = NeoAudio::<SystemRtAudio, MyMessage>::new()?;
+    let mut neo_audio = NeoAudio::<RtAudioBackend, MyMessage>::new()?;
 
     // start the audio engine with an implemented audio processor
     neo_audio.start_audio(MyProcessor::default())?;

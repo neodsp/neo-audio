@@ -7,9 +7,9 @@ use self::{
 const DEFAULT_SAMPLE_RATE: u32 = 48000;
 const DEFAULT_NUM_FRAMES: u32 = 512;
 
+pub mod backends;
 pub mod device_config;
 pub mod device_name;
-pub mod implementations;
 pub mod system_audio_error;
 
 pub trait SystemAudio {
@@ -84,7 +84,7 @@ mod tests {
 
     #[test]
     fn play_sine() {
-        use implementations::system_rtaudio::SystemRtAudio as AudioEngine;
+        use backends::rtaudio_backend::RtAudioBackend as AudioEngine;
 
         let mut audio_engine = AudioEngine::default().unwrap();
         dbg!(audio_engine.config());

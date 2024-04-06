@@ -11,7 +11,7 @@ use crate::{
     SystemAudio, DEFAULT_NUM_FRAMES, DEFAULT_SAMPLE_RATE,
 };
 
-pub struct SystemRtAudio {
+pub struct RtAudioBackend {
     host: Option<Host>,
     apis: Vec<rtaudio::Api>,
     input_devices: Vec<rtaudio::DeviceInfo>,
@@ -28,7 +28,7 @@ pub struct SystemRtAudio {
     error_receiver: Option<Receiver<SystemAudioError>>,
 }
 
-impl std::fmt::Debug for SystemRtAudio {
+impl std::fmt::Debug for RtAudioBackend {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("RtAudioImpl")
             .field("apis", &self.apis)
@@ -50,7 +50,7 @@ impl std::fmt::Debug for SystemRtAudio {
     }
 }
 
-impl SystemAudio for SystemRtAudio {
+impl SystemAudio for RtAudioBackend {
     fn default() -> Result<Self, SystemAudioError> {
         let host = rtaudio::Host::new(rtaudio::Api::Unspecified)?;
         let selected_api = host.api();
