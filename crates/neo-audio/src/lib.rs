@@ -3,6 +3,8 @@ use crossbeam_channel::{Receiver, Sender};
 use error::NeoAudioError;
 use system_audio::{system_audio_error::SystemAudioError, SystemAudio};
 
+pub use system_audio::implementations::system_rtaudio::SystemRtAudio;
+
 pub mod audio_processor;
 pub mod error;
 
@@ -33,21 +35,22 @@ impl<S: SystemAudio, M: Send + 'static> NeoAudio<S, M> {
         &mut self.system_audio
     }
 
-    pub fn send_to_process(&mut self, message: M) -> Result<(), crossbeam_channel::SendError<M>> {
-        self.sender.send(message)
+    pub fn sender(&self) -> &Sender<M> {
+        &self.sender
+    }
+
+    pub fn send_message(&self, message: M) -> Result<(), NeoAudioError> {
+        self.sender
+            .send(message)
+            .map_err(|_| NeoAudioError::SendFailed)?;
+        Ok(())
     }
 
     pub fn start_audio<P: AudioProcessor<M> + Send + 'static>(
         &mut self,
         mut processor: P,
     ) -> Result<(), SystemAudioError> {
-        let config = self.system_audio.config();
-        processor.prepare(
-            config.sample_rate,
-            config.num_frames,
-            config.num_input_ch,
-            config.num_output_ch,
-        );
+        processor.prepare(self.system_audio.config());
         let rcv = self.receiver.clone();
         self.system_audio.start_stream(move |output, input| {
             // receive all messages
@@ -64,8 +67,9 @@ impl<S: SystemAudio, M: Send + 'static> NeoAudio<S, M> {
         })
     }
 
-    pub fn stop_audio(&mut self) -> Result<(), SystemAudioError> {
+    pub fn stop_audio(&mut self) -> Result<(), NeoAudioError> {
         self.system_audio.stop_stream()?;
-        self.system_audio.stream_error()
+        self.system_audio.stream_error()?;
+        Ok(())
     }
 }

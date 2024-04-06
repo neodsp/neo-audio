@@ -1,0 +1,59 @@
+use neo_audio::{
+    audio_processor::{AudioProcessor, DeviceConfig, InputBuffer, OutputBuffer},
+    error::NeoAudioError,
+    NeoAudio, SystemRtAudio,
+};
+
+fn main() -> Result<(), NeoAudioError> {
+    // construct audio engine with selected backend and message type
+    let mut neo_audio = NeoAudio::<SystemRtAudio, MyMessage>::new()?;
+
+    // start the audio engine with an implemented audio processor
+    neo_audio.start_audio(MyProcessor::default())?;
+
+    // send thread-safe messages to the processor
+    neo_audio.send_message(MyMessage::Gain(0.5))?;
+
+    // let it run for a bit
+    std::thread::sleep(std::time::Duration::from_secs(5));
+
+    // stop the audio stream
+    neo_audio.stop_audio()?;
+    Ok(())
+}
+
+enum MyMessage {
+    Gain(f32),
+}
+
+struct MyProcessor {
+    gain: f32,
+}
+
+impl Default for MyProcessor {
+    fn default() -> Self {
+        Self { gain: 1.0 }
+    }
+}
+
+impl AudioProcessor<MyMessage> for MyProcessor {
+    fn prepare(&mut self, config: DeviceConfig) {
+        println!("Prepare is called with {:?}", config);
+    }
+
+    fn message_process(&mut self, message: MyMessage) {
+        match message {
+            MyMessage::Gain(gain) => self.gain = gain,
+        }
+    }
+
+    fn process(&mut self, mut output: OutputBuffer<'_, f32>, input: InputBuffer<'_, f32>) {
+        let min_ch = output.num_channels().min(input.num_channels());
+        for ch in 0..min_ch {
+            output
+                .channel_iter_mut(ch)
+                .zip(input.channel_iter(ch))
+                .for_each(|(o, i)| *o = *i * self.gain);
+        }
+    }
+}
