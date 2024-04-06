@@ -1,8 +1,4 @@
-use neo_audio::{
-    audio_processor::{AudioProcessor, DeviceConfig, InputBuffer, OutputBuffer},
-    error::NeoAudioError,
-    NeoAudio, SystemRtAudio,
-};
+use neo_audio::prelude::*;
 
 fn main() -> Result<(), NeoAudioError> {
     // construct audio engine with selected backend and message type

@@ -3,11 +3,9 @@ use crossbeam_channel::{Receiver, Sender};
 use error::NeoAudioError;
 use system_audio::{system_audio_error::SystemAudioError, SystemAudio};
 
-pub use system_audio::device_name::DeviceName;
-pub use system_audio::implementations::system_rtaudio::SystemRtAudio;
-
 pub mod audio_processor;
 pub mod error;
+pub mod prelude;
 
 pub struct NeoAudio<S: SystemAudio, Message: Send + 'static> {
     system_audio: S,
