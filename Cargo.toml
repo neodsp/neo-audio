@@ -20,3 +20,4 @@ rt-tools = { path = "crates/rt-tools" }
 serde = "1.0.197"
 thiserror = "1.0.58"
 rtaudio = "0.3.3"
+crossbeam-channel = "0.5.12"

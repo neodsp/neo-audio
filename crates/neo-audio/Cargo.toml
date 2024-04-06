@@ -8,3 +8,6 @@ version.workspace = true
 
 [dependencies]
 rt-tools = { workspace = true }
+system-audio = { workspace = true }
+crossbeam-channel = { workspace = true }
+thiserror = { workspace = true }
