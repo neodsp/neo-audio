@@ -247,7 +247,7 @@ impl SystemAudio for SystemRtAudio {
     }
 
     fn set_num_output_channels(&mut self, ch: u32) -> Result<(), SystemAudioError> {
-        if ch >= self.available_num_output_channels() {
+        if ch > self.available_num_output_channels() {
             return Err(SystemAudioError::NumOutputChannels);
         }
         self.selected_num_output_channels = ch;
@@ -266,7 +266,7 @@ impl SystemAudio for SystemRtAudio {
     }
 
     fn set_num_input_channels(&mut self, ch: u32) -> Result<(), SystemAudioError> {
-        if ch >= self.available_num_input_channels() {
+        if ch > self.available_num_input_channels() {
             return Err(SystemAudioError::NumInputChannels);
         }
         self.selected_num_input_channels = ch;

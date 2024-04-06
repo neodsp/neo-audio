@@ -1,6 +1,6 @@
 use super::device_name::DeviceName;
 
-#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub struct DeviceConfig {
     pub api: String,
     pub output_device: DeviceName,

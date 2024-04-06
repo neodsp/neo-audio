@@ -14,8 +14,7 @@ fn main() {
 struct MyEguiApp {
     neo_audio: NeoAudio<SystemRtAudio, MyMessage>,
     audio_running: bool,
-    api: String,
-    output_device: Option<String>,
+    config: DeviceConfig,
 }
 
 impl MyEguiApp {
@@ -26,10 +25,10 @@ impl MyEguiApp {
         // for e.g. egui::PaintCallback.
         let neo_audio = NeoAudio::<SystemRtAudio, MyMessage>::new().unwrap();
         let system_audio = neo_audio.system_audio();
+        dbg!(system_audio);
         Self {
             audio_running: false,
-            api: system_audio.api(),
-            output_device: system_audio.output_device(),
+            config: system_audio.config(),
             neo_audio,
         }
     }
@@ -41,33 +40,94 @@ impl eframe::App for MyEguiApp {
         egui::CentralPanel::default().show(ctx, |ui| {
             ui.heading("NeoAudio egui example!");
 
-            let system_audio = self.neo_audio.system_audio_mut();
+            let system_audio = self.neo_audio.system_audio();
 
+            // API
             egui::ComboBox::from_label("Api")
                 .selected_text(system_audio.api())
                 .show_ui(ui, |ui| {
                     for api in system_audio.available_apis() {
-                        ui.selectable_value(&mut self.api, api.clone(), api);
+                        ui.selectable_value(&mut self.config.api, api.clone(), api);
                     }
                 });
 
-            // update if changed
-            if self.api != system_audio.api() {
-                system_audio.set_api(&self.api).unwrap();
-            }
-
+            // Output Device
             egui::ComboBox::from_label("Output Device")
-                .selected_text(format!("{:?}", system_audio.output_device()))
+                .selected_text(format!(
+                    "{:?}",
+                    system_audio.output_device().unwrap_or("None".to_string())
+                ))
                 .show_ui(ui, |ui| {
                     for device in system_audio.available_output_devices() {
-                        ui.selectable_value(&mut self.output_device, Some(device.clone()), device);
+                        ui.selectable_value(
+                            &mut self.config.output_device,
+                            DeviceName::Name(device.clone()),
+                            device,
+                        );
+                    }
+                });
+            egui::ComboBox::from_label("Num Output Channels")
+                .selected_text(format!("{:?}", system_audio.num_output_channels()))
+                .show_ui(ui, |ui| {
+                    for ch in 0..system_audio.available_num_output_channels() {
+                        ui.selectable_value(&mut self.config.num_output_ch, ch, ch.to_string());
                     }
                 });
 
-            // update if changed
-            if self.output_device != system_audio.output_device() {
-                system_audio
-                    .set_output_device(self.output_device.as_ref().into())
+            // Input Device
+            egui::ComboBox::from_label("Input Device")
+                .selected_text(format!(
+                    "{:?}",
+                    system_audio.input_device().unwrap_or("None".to_string())
+                ))
+                .show_ui(ui, |ui| {
+                    for device in system_audio.available_input_devices() {
+                        ui.selectable_value(
+                            &mut self.config.input_device,
+                            DeviceName::Name(device.clone()),
+                            device,
+                        );
+                    }
+                });
+
+            egui::ComboBox::from_label("Num Input Channels")
+                .selected_text(format!("{:?}", system_audio.num_input_channels()))
+                .show_ui(ui, |ui| {
+                    for ch in 0..system_audio.available_num_input_channels() {
+                        ui.selectable_value(&mut self.config.num_input_ch, ch, ch.to_string());
+                    }
+                });
+
+            // Sample Rate
+            egui::ComboBox::from_label("Sample Rate")
+                .selected_text(format!("{}", system_audio.sample_rate()))
+                .show_ui(ui, |ui| {
+                    for sr in system_audio.available_sample_rates() {
+                        ui.selectable_value(&mut self.config.sample_rate, sr, sr.to_string());
+                    }
+                });
+
+            // Num Frames
+            egui::ComboBox::from_label("Num Frames")
+                .selected_text(format!("{}", system_audio.num_frames()))
+                .show_ui(ui, |ui| {
+                    for frames in system_audio.available_num_frames() {
+                        ui.selectable_value(
+                            &mut self.config.num_frames,
+                            frames,
+                            frames.to_string(),
+                        );
+                    }
+                });
+
+            if self.config != system_audio.config() {
+                if self.audio_running {
+                    self.neo_audio.stop_audio().unwrap();
+                    self.audio_running = false;
+                }
+                self.neo_audio
+                    .system_audio_mut()
+                    .set_config(&self.config)
                     .unwrap();
             }
 
