@@ -25,6 +25,14 @@ impl<S: SystemAudio, M: Send + 'static> NeoAudio<S, M> {
         })
     }
 
+    pub fn system_audio(&self) -> &S {
+        &self.system_audio
+    }
+
+    pub fn system_audio_mut(&mut self) -> &mut S {
+        &mut self.system_audio
+    }
+
     pub fn send_to_process(&mut self, message: M) -> Result<(), crossbeam_channel::SendError<M>> {
         self.sender.send(message)
     }
