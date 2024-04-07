@@ -16,8 +16,19 @@ pub struct State {
 }
 
 #[tauri::command]
-fn get_apis(state: tauri::State<'_, State>) -> Vec<String> {
+fn get_apis(state: tauri::State<State>) -> Vec<String> {
     state.neo_audio.lock().unwrap().backend().available_apis()
+}
+
+#[tauri::command]
+fn set_api(state: tauri::State<State>, api_name: &str) -> Result<(), NeoAudioError> {
+    state
+        .neo_audio
+        .lock()
+        .unwrap()
+        .backend_mut()
+        .set_api(api_name)?;
+    Ok(())
 }
 
 fn main() {
@@ -28,7 +39,7 @@ fn main() {
             neo_audio: Mutex::new(neo_audio),
         })
         .plugin(tauri_plugin_shell::init())
-        .invoke_handler(tauri::generate_handler![greet, get_apis])
+        .invoke_handler(tauri::generate_handler![greet, get_apis, set_api])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

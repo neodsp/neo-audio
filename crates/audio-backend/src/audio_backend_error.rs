@@ -1,6 +1,6 @@
 use thiserror::Error;
 
-#[derive(Error, Debug)]
+#[derive(Error, Debug, serde::Serialize, serde::Deserialize)]
 pub enum AudioBackendError {
     #[error("Stream is running, please stop stream before changing devices.")]
     StreamRunning,

@@ -1790,6 +1790,7 @@ dependencies = [
  "crossbeam-channel",
  "ndarray",
  "rt-tools",
+ "serde",
  "thiserror",
 ]
 

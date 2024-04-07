@@ -12,6 +12,7 @@ audio-backend = { workspace = true }
 crossbeam-channel = { workspace = true }
 thiserror = { workspace = true }
 ndarray = { workspace = true, optional = true }
+serde = { workspace = true, features = ["serde_derive"] }
 
 [features]
 default = ["processors"]

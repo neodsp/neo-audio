@@ -54,7 +54,7 @@ where
         &self.backend
     }
 
-    pub fn system_audio_mut(&mut self) -> &mut B {
+    pub fn backend_mut(&mut self) -> &mut B {
         &mut self.backend
     }
 

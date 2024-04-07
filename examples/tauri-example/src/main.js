@@ -14,6 +14,10 @@ async function get_apis() {
   fillSelect(apisEl, apis);
 }
 
+async function set_api(apiName) {
+  await invoke("set_api", { apiName }).catch((e) => console.error(e));
+}
+
 // Function to fill the select field with options
 function fillSelect(select, array) {
   array.forEach((item) => {
@@ -35,6 +39,6 @@ window.addEventListener("DOMContentLoaded", () => {
   apisEl = document.querySelector("#apis");
   get_apis();
   apisEl.addEventListener("change", function () {
-    console.log(this.value);
+    set_api(this.value);
   });
 });
