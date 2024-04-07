@@ -1,5 +1,6 @@
 use eframe::egui;
 use neo_audio::prelude::*;
+use rt_tools::smooth_value::{Easing, Linear, SmoothValue};
 
 fn main() {
     let native_options = eframe::NativeOptions::default();
@@ -12,7 +13,7 @@ fn main() {
 }
 
 struct MyEguiApp {
-    neo_audio: NeoAudio<RtAudioBackend, MyMessage>,
+    neo_audio: NeoAudio<RtAudioBackend, MyProcessor>,
     audio_running: bool,
     config: DeviceConfig,
     gain: f32,
@@ -24,12 +25,11 @@ impl MyEguiApp {
         // Restore app state using cc.storage (requires the "persistence" feature).
         // Use the cc.gl (a glow::Context) to create graphics shaders and buffers that you can use
         // for e.g. egui::PaintCallback.
-        let neo_audio = NeoAudio::<RtAudioBackend, MyMessage>::new().unwrap();
-        let system_audio = neo_audio.system_audio();
-        dbg!(system_audio);
+        let neo_audio = NeoAudio::<RtAudioBackend, MyProcessor>::new().unwrap();
+        let backend = neo_audio.backend();
         Self {
             audio_running: false,
-            config: system_audio.config(),
+            config: backend.config(),
             neo_audio,
             gain: 1.0,
         }
@@ -42,13 +42,13 @@ impl eframe::App for MyEguiApp {
         egui::CentralPanel::default().show(ctx, |ui| {
             ui.heading("NeoAudio egui example!");
 
-            let system_audio = self.neo_audio.system_audio();
+            let backend = self.neo_audio.backend();
 
             // API
             egui::ComboBox::from_label("Api")
-                .selected_text(system_audio.api())
+                .selected_text(backend.api())
                 .show_ui(ui, |ui| {
-                    for api in system_audio.available_apis() {
+                    for api in backend.available_apis() {
                         ui.selectable_value(&mut self.config.api, api.clone(), api);
                     }
                 });
@@ -57,10 +57,10 @@ impl eframe::App for MyEguiApp {
             egui::ComboBox::from_label("Output Device")
                 .selected_text(format!(
                     "{:?}",
-                    system_audio.output_device().unwrap_or("None".to_string())
+                    backend.output_device().unwrap_or("None".to_string())
                 ))
                 .show_ui(ui, |ui| {
-                    for device in system_audio.available_output_devices() {
+                    for device in backend.available_output_devices() {
                         ui.selectable_value(
                             &mut self.config.output_device,
                             DeviceName::Name(device.clone()),
@@ -69,9 +69,9 @@ impl eframe::App for MyEguiApp {
                     }
                 });
             egui::ComboBox::from_label("Num Output Channels")
-                .selected_text(format!("{:?}", system_audio.num_output_channels()))
+                .selected_text(format!("{:?}", backend.num_output_channels()))
                 .show_ui(ui, |ui| {
-                    for ch in 0..system_audio.available_num_output_channels() {
+                    for ch in 0..backend.available_num_output_channels() {
                         ui.selectable_value(&mut self.config.num_output_ch, ch, ch.to_string());
                     }
                 });
@@ -80,10 +80,10 @@ impl eframe::App for MyEguiApp {
             egui::ComboBox::from_label("Input Device")
                 .selected_text(format!(
                     "{:?}",
-                    system_audio.input_device().unwrap_or("None".to_string())
+                    backend.input_device().unwrap_or("None".to_string())
                 ))
                 .show_ui(ui, |ui| {
-                    for device in system_audio.available_input_devices() {
+                    for device in backend.available_input_devices() {
                         ui.selectable_value(
                             &mut self.config.input_device,
                             DeviceName::Name(device.clone()),
@@ -93,27 +93,27 @@ impl eframe::App for MyEguiApp {
                 });
 
             egui::ComboBox::from_label("Num Input Channels")
-                .selected_text(format!("{:?}", system_audio.num_input_channels()))
+                .selected_text(format!("{:?}", backend.num_input_channels()))
                 .show_ui(ui, |ui| {
-                    for ch in 0..system_audio.available_num_input_channels() {
+                    for ch in 0..backend.available_num_input_channels() {
                         ui.selectable_value(&mut self.config.num_input_ch, ch, ch.to_string());
                     }
                 });
 
             // Sample Rate
             egui::ComboBox::from_label("Sample Rate")
-                .selected_text(format!("{}", system_audio.sample_rate()))
+                .selected_text(format!("{}", backend.sample_rate()))
                 .show_ui(ui, |ui| {
-                    for sr in system_audio.available_sample_rates() {
+                    for sr in backend.available_sample_rates() {
                         ui.selectable_value(&mut self.config.sample_rate, sr, sr.to_string());
                     }
                 });
 
             // Num Frames
             egui::ComboBox::from_label("Num Frames")
-                .selected_text(format!("{}", system_audio.num_frames()))
+                .selected_text(format!("{}", backend.num_frames()))
                 .show_ui(ui, |ui| {
-                    for frames in system_audio.available_num_frames() {
+                    for frames in backend.available_num_frames() {
                         ui.selectable_value(
                             &mut self.config.num_frames,
                             frames,
@@ -122,13 +122,13 @@ impl eframe::App for MyEguiApp {
                     }
                 });
 
-            if self.config != system_audio.config() {
+            if self.config != backend.config() {
                 if self.audio_running {
                     self.neo_audio.stop_audio().unwrap();
                     self.audio_running = false;
                 }
                 self.neo_audio
-                    .system_audio_mut()
+                    .backend_mut()
                     .set_config(&self.config)
                     .unwrap();
             }
@@ -163,33 +163,37 @@ enum MyMessage {
 }
 
 struct MyProcessor {
-    gain: f32,
+    gain: SmoothValue,
 }
 
 impl Default for MyProcessor {
     fn default() -> Self {
-        Self { gain: 1.0 }
+        Self {
+            gain: SmoothValue::new(1.0, Linear::ease_in_out),
+        }
     }
 }
 
-impl AudioProcessor<MyMessage> for MyProcessor {
+impl AudioProcessor for MyProcessor {
+    type Message = MyMessage;
+
     fn prepare(&mut self, config: DeviceConfig) {
+        self.gain.prepare(config.sample_rate, 100);
         println!("Prepare is called with {:?}", config);
     }
 
     fn message_process(&mut self, message: MyMessage) {
         match message {
-            MyMessage::Gain(gain) => self.gain = gain,
+            MyMessage::Gain(gain) => self.gain.set_target_value(gain),
         }
     }
 
-    fn process(&mut self, mut output: OutputBuffer<'_, f32>, input: InputBuffer<'_, f32>) {
-        let min_ch = output.num_channels().min(input.num_channels());
-        for ch in 0..min_ch {
-            output
-                .channel_iter_mut(ch)
-                .zip(input.channel_iter(ch))
-                .for_each(|(o, i)| *o = *i * self.gain);
+    fn process(&mut self, mut output: AudioDataMut<'_, f32>, input: AudioData<'_, f32>) {
+        for (out_frame, in_frame) in output.frames_iter_mut().zip(input.frames_iter()) {
+            let gain = self.gain.next_value();
+            for (o, i) in out_frame.iter_mut().zip(in_frame.iter()) {
+                *o = *i * gain;
+            }
         }
     }
 }

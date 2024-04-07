@@ -7,6 +7,7 @@ members = [
   # "examples/*",
   "examples/feedback",
   "examples/player",
+  "examples/egui-example",
   "examples/tauri-example/src-tauri",
 ]
 resolver = "2"

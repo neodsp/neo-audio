@@ -11,19 +11,19 @@ pub struct SmoothValue {
 }
 
 impl SmoothValue {
-    pub fn new(easer: fn(f32, f32, f32, f32) -> f32) -> Self {
+    pub fn new(initial_value: f32, easer: fn(f32, f32, f32, f32) -> f32) -> Self {
         Self {
             num_steps: 0,
             counter: 0,
-            begin: 0.0,
+            begin: initial_value,
             change: 0.0,
-            current: 0.0,
-            target: 0.0,
+            current: initial_value,
+            target: initial_value,
             easer,
         }
     }
 
-    pub fn prepare(&mut self, sample_rate: usize, ramp_time_ms: usize) {
+    pub fn prepare(&mut self, sample_rate: u32, ramp_time_ms: usize) {
         self.num_steps = ((sample_rate as f64 / 1000.0) * ramp_time_ms as f64).round() as usize;
     }
 
@@ -36,6 +36,7 @@ impl SmoothValue {
 
     pub fn set_current_and_target_value(&mut self, target: f32) {
         self.target = target;
+        self.current = target;
         self.begin = target;
         self.change = 0.0;
         self.counter = self.num_steps + 1;
@@ -74,9 +75,9 @@ impl SmoothValue {
 
 #[test]
 fn test() {
-    let mut smooth_value = SmoothValue::new(Linear::ease_in_out);
+    let mut smooth_value = SmoothValue::new(0.0, Linear::ease_in_out);
     smooth_value.prepare(100, 100);
-    smooth_value.set_target_value(1.);
+    smooth_value.set_target_value(1.0);
     for i in 0..=10 {
         assert_eq!(smooth_value.next_value(), i as f32 / 10.0);
     }
