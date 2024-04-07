@@ -27,6 +27,10 @@ impl SmoothValue {
         self.num_steps = ((sample_rate as f64 / 1000.0) * ramp_time_ms as f64).round() as usize;
     }
 
+    pub fn set_num_steps(&mut self, num_steps: usize) {
+        self.num_steps = num_steps;
+    }
+
     pub fn set_target_value(&mut self, target: f32) {
         self.target = target;
         self.begin = self.current;

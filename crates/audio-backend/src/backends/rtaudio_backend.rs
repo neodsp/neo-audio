@@ -344,14 +344,14 @@ impl AudioBackend for RtAudioBackend {
                         .as_ref()
                         .map(|device| DeviceParams {
                             device_id: device.id,
-                            num_channels: 2,
+                            num_channels: self.selected_num_output_channels,
                             first_channel: 0,
                         }),
                     self.selected_input_device
                         .as_ref()
                         .map(|device| DeviceParams {
                             device_id: device.id,
-                            num_channels: device.input_channels,
+                            num_channels: self.selected_num_input_channels,
                             first_channel: 0,
                         }),
                     rtaudio::SampleFormat::Float32,

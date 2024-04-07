@@ -1,6 +1,12 @@
-use eframe::egui;
-use neo_audio::prelude::*;
-use rt_tools::smooth_value::{Easing, Linear, SmoothValue};
+use eframe::egui::{self, remap};
+use neo_audio::{
+    prelude::*,
+    processors::player::{bounded, Receiver, Sender},
+};
+use rt_tools::{
+    level_meter::{Level, LevelMeter},
+    smooth_value::{Easing, Linear, SmoothValue},
+};
 
 fn main() {
     let native_options = eframe::NativeOptions::default();
@@ -17,6 +23,9 @@ struct MyEguiApp {
     audio_running: bool,
     config: DeviceConfig,
     gain: f32,
+    ui_sender: Sender<UiMessage>,
+    ui_receiver: Receiver<UiMessage>,
+    input_level: SmoothValue,
 }
 
 impl MyEguiApp {
@@ -27,11 +36,17 @@ impl MyEguiApp {
         // for e.g. egui::PaintCallback.
         let neo_audio = NeoAudio::<RtAudioBackend, MyProcessor>::new().unwrap();
         let backend = neo_audio.backend();
+        let (ui_sender, ui_receiver) = bounded(1024);
+        let mut input_level = SmoothValue::new(0.0, Linear::ease_in_out);
+        input_level.prepare(60, 100);
         Self {
             audio_running: false,
             config: backend.config(),
             neo_audio,
             gain: 1.0,
+            ui_sender,
+            ui_receiver,
+            input_level,
         }
     }
 }
@@ -71,7 +86,7 @@ impl eframe::App for MyEguiApp {
             egui::ComboBox::from_label("Num Output Channels")
                 .selected_text(format!("{:?}", backend.num_output_channels()))
                 .show_ui(ui, |ui| {
-                    for ch in 0..backend.available_num_output_channels() {
+                    for ch in 1..backend.available_num_output_channels() {
                         ui.selectable_value(&mut self.config.num_output_ch, ch, ch.to_string());
                     }
                 });
@@ -95,7 +110,7 @@ impl eframe::App for MyEguiApp {
             egui::ComboBox::from_label("Num Input Channels")
                 .selected_text(format!("{:?}", backend.num_input_channels()))
                 .show_ui(ui, |ui| {
-                    for ch in 0..backend.available_num_input_channels() {
+                    for ch in 1..backend.available_num_input_channels() {
                         ui.selectable_value(&mut self.config.num_input_ch, ch, ch.to_string());
                     }
                 });
@@ -141,7 +156,9 @@ impl eframe::App for MyEguiApp {
                 }
             } else {
                 if ui.button("Start").clicked() {
-                    self.neo_audio.start_audio(MyProcessor::default()).unwrap();
+                    self.neo_audio
+                        .start_audio(MyProcessor::new(self.ui_sender.clone()))
+                        .unwrap();
                     self.audio_running = true;
                 }
             }
@@ -154,6 +171,26 @@ impl eframe::App for MyEguiApp {
                     .send_message(MyMessage::Gain(self.gain))
                     .unwrap();
             }
+
+            // update percentage
+            if self.audio_running {
+                for _ in 0..self.ui_receiver.len() {
+                    match self.ui_receiver.try_recv() {
+                        Ok(message) => match message {
+                            UiMessage::Level(level) => {
+                                dbg!(level.peak_db);
+                                let new_level = remap(level.peak_db, -30.0..=0.0, 0.0..=1.0);
+                                self.input_level.set_target_value(new_level);
+                            }
+                        },
+                        _ => break,
+                    }
+                }
+            } else {
+                self.input_level.set_current_and_target_value(0.0);
+            }
+
+            ui.add(egui::ProgressBar::new(self.input_level.next_value()).animate(true));
         });
     }
 }
@@ -162,14 +199,22 @@ enum MyMessage {
     Gain(f32),
 }
 
-struct MyProcessor {
-    gain: SmoothValue,
+enum UiMessage {
+    Level(Level),
 }
 
-impl Default for MyProcessor {
-    fn default() -> Self {
+struct MyProcessor {
+    gain: SmoothValue,
+    meter: LevelMeter,
+}
+
+impl MyProcessor {
+    pub fn new(ui_sender: Sender<UiMessage>) -> Self {
         Self {
             gain: SmoothValue::new(1.0, Linear::ease_in_out),
+            meter: LevelMeter::new(Box::new(move |level: Level| {
+                ui_sender.send(UiMessage::Level(level)).unwrap();
+            })),
         }
     }
 }
@@ -179,6 +224,8 @@ impl AudioProcessor for MyProcessor {
 
     fn prepare(&mut self, config: DeviceConfig) {
         self.gain.prepare(config.sample_rate, 100);
+        self.meter
+            .prepare(config.sample_rate, config.num_frames, 100);
         println!("Prepare is called with {:?}", config);
     }
 
@@ -189,6 +236,9 @@ impl AudioProcessor for MyProcessor {
     }
 
     fn process(&mut self, mut output: AudioDataMut<'_, f32>, input: AudioData<'_, f32>) {
+        if input.num_channels() > 0 {
+            self.meter.process(input.channel_iter(0));
+        }
         for (out_frame, in_frame) in output.frames_iter_mut().zip(input.frames_iter()) {
             let gain = self.gain.next_value();
             for (o, i) in out_frame.iter_mut().zip(in_frame.iter()) {

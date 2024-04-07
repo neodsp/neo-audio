@@ -1,17 +1,20 @@
 use std::collections::VecDeque;
 
-use crate::audio_data::AudioData;
-
 const MINUS_INF_DB: f32 = -100.0;
 
-pub struct LevelMetering {
-    num_samples: usize,
-    store: VecDeque<f32>,
-    send_fn: Box<dyn Fn(u32, f32, f32)>,
+pub struct Level {
+    pub peak_db: f32,
+    pub rms_db: f32,
 }
 
-impl LevelMetering {
-    pub fn new(send_fn: impl Fn(u32, f32, f32) + 'static) -> Self {
+pub struct LevelMeter {
+    num_samples: usize,
+    store: VecDeque<f32>,
+    send_fn: Box<dyn Fn(Level) + Send>,
+}
+
+impl LevelMeter {
+    pub fn new(send_fn: impl Fn(Level) + Send + 'static) -> Self {
         Self {
             num_samples: 0,
             store: VecDeque::new(),
@@ -24,11 +27,8 @@ impl LevelMetering {
         self.store.reserve(self.num_samples + num_frames as usize);
     }
 
-    pub fn process(&mut self, audio_data: AudioData<'_, f32>, channel: usize) {
-        // make sure vec is not allocating!
-        assert!(self.store.len() + audio_data.num_frames() < self.store.capacity());
-
-        for sample in audio_data.channel_iter(channel) {
+    pub fn process<'a>(&mut self, audio_data: impl IntoIterator<Item = &'a f32>) {
+        for sample in audio_data.into_iter() {
             self.store.push_back(*sample);
         }
 
@@ -56,7 +56,7 @@ impl LevelMetering {
                 20. * rms.log10()
             };
 
-            (self.send_fn)(0, peak_db, rms_db);
+            (self.send_fn)(Level { peak_db, rms_db });
         }
     }
 }
