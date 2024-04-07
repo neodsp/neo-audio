@@ -1,5 +1,5 @@
 [package]
-name = "minimal"
+name = "feedback"
 edition.workspace = true
 rust-version.workspace = true
 version.workspace = true

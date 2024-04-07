@@ -1,13 +1,15 @@
 [workspace]
-resolver = "2"
 members = [
   "crates/system-audio",
   "crates/rt-tools",
   "crates/neo-audio",
 
   # "examples/*",
+  "examples/feedback",
+  "examples/player",
   "examples/tauri-example/src-tauri",
 ]
+resolver = "2"
 
 [workspace.package]
 edition = "2021"
@@ -29,3 +31,4 @@ serde = "1.0.197"
 thiserror = "1.0.58"
 rtaudio = "0.3.3"
 crossbeam-channel = "0.5.12"
+ndarray = "0.15.6"

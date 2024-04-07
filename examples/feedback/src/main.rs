@@ -2,7 +2,7 @@ use neo_audio::prelude::*;
 
 fn main() -> Result<(), NeoAudioError> {
     // construct audio engine with selected backend and message type
-    let mut neo_audio = NeoAudio::<RtAudioBackend, MyMessage>::new()?;
+    let mut neo_audio = NeoAudio::<RtAudioBackend, MyProcessor>::new()?;
 
     // start the audio engine with an implemented audio processor
     neo_audio.start_audio(MyProcessor::default())?;
@@ -32,12 +32,14 @@ impl Default for MyProcessor {
     }
 }
 
-impl AudioProcessor<MyMessage> for MyProcessor {
+impl AudioProcessor for MyProcessor {
+    type Message = MyMessage;
+
     fn prepare(&mut self, config: DeviceConfig) {
         println!("Prepare is called with {:?}", config);
     }
 
-    fn message_process(&mut self, message: MyMessage) {
+    fn message_process(&mut self, message: Self::Message) {
         match message {
             MyMessage::Gain(gain) => self.gain = gain,
         }

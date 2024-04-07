@@ -6,17 +6,41 @@ use system_audio::{system_audio_error::SystemAudioError, SystemAudio};
 pub mod audio_processor;
 pub mod error;
 pub mod prelude;
+#[cfg(feature = "processors")]
+pub mod processors;
 
-pub struct NeoAudio<S: SystemAudio, Message: Send + 'static> {
+pub struct NeoAudio<S, P>
+where
+    S: SystemAudio,
+    P: AudioProcessor + Send + 'static,
+    <P as audio_processor::AudioProcessor>::Message: std::marker::Send,
+{
     system_audio: S,
-    sender: Sender<Message>,
-    receiver: Receiver<Message>,
+    sender: Sender<P::Message>,
+    receiver: Receiver<P::Message>,
 }
 
-unsafe impl<S: SystemAudio, M: Send + 'static> Sync for NeoAudio<S, M> {}
-unsafe impl<S: SystemAudio, M: Send + 'static> Send for NeoAudio<S, M> {}
+unsafe impl<S, P> Sync for NeoAudio<S, P>
+where
+    S: SystemAudio,
+    P: AudioProcessor + Send + 'static,
+    <P as audio_processor::AudioProcessor>::Message: std::marker::Send,
+{
+}
+unsafe impl<S, P> Send for NeoAudio<S, P>
+where
+    S: SystemAudio,
+    P: AudioProcessor + Send + 'static,
+    <P as audio_processor::AudioProcessor>::Message: std::marker::Send,
+{
+}
 
-impl<S: SystemAudio, M: Send + 'static> NeoAudio<S, M> {
+impl<S, P> NeoAudio<S, P>
+where
+    S: SystemAudio,
+    P: AudioProcessor + Send + 'static,
+    <P as audio_processor::AudioProcessor>::Message: std::marker::Send,
+{
     pub fn new() -> Result<Self, NeoAudioError> {
         let (sender, receiver) = crossbeam_channel::bounded(1024);
         Ok(Self {
@@ -34,21 +58,21 @@ impl<S: SystemAudio, M: Send + 'static> NeoAudio<S, M> {
         &mut self.system_audio
     }
 
-    pub fn sender(&self) -> &Sender<M> {
+    pub fn sender(&self) -> &Sender<P::Message> {
         &self.sender
     }
 
-    pub fn send_message(&self, message: M) -> Result<(), NeoAudioError> {
+    pub fn send_message(&self, message: P::Message) -> Result<(), NeoAudioError> {
         self.sender
             .send(message)
             .map_err(|_| NeoAudioError::SendFailed)?;
         Ok(())
     }
 
-    pub fn start_audio<P: AudioProcessor<M> + Send + 'static>(
-        &mut self,
-        mut processor: P,
-    ) -> Result<(), SystemAudioError> {
+    pub fn start_audio(&mut self, mut processor: P) -> Result<(), SystemAudioError>
+    where
+        <P as audio_processor::AudioProcessor>::Message: std::marker::Send,
+    {
         processor.prepare(self.system_audio.config());
         let rcv = self.receiver.clone();
         self.system_audio.start_stream(move |output, input| {
