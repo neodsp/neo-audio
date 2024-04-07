@@ -1,5 +1,5 @@
 pub use audio_backend::device_config::DeviceConfig;
-pub use rt_tools::audio_buffers::{InputBuffer, OutputBuffer};
+pub use rt_tools::audio_data::{AudioData, AudioDataMut};
 
 pub trait AudioProcessor {
     type Message;
@@ -16,5 +16,5 @@ pub trait AudioProcessor {
 
     /// here you can manipulate the audio streams, copy incoming to outgoing data.
     /// do not do anything that blocks the audio stream.
-    fn process(&mut self, output: OutputBuffer<'_, f32>, input: InputBuffer<'_, f32>);
+    fn process(&mut self, output: AudioDataMut<'_, f32>, input: AudioData<'_, f32>);
 }

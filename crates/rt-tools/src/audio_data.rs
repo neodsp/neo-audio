@@ -3,18 +3,27 @@ use std::{
     slice::{Chunks, ChunksMut, Iter, IterMut},
 };
 
-pub struct InputBuffer<'a, T: Copy> {
+#[derive(Clone)]
+pub struct AudioData<'a, T: Copy> {
     interleaved_audio: &'a [T],
     num_channels: usize,
     num_frames: usize,
 }
 
-impl<'a, T: Copy> InputBuffer<'a, T> {
+impl<'a, T: Copy> AudioData<'a, T> {
     pub fn from(interleaved_audio: &'a [T], num_channels: usize) -> Self {
         Self {
             num_frames: interleaved_audio.len() / num_channels,
             interleaved_audio,
             num_channels,
+        }
+    }
+
+    pub fn from_audio_data_mut(&mut self, audio_data: AudioDataMut<'a, T>) -> Self {
+        Self {
+            num_frames: audio_data.num_frames(),
+            interleaved_audio: audio_data.interleaved_audio,
+            num_channels: audio_data.num_channels,
         }
     }
 
@@ -55,13 +64,13 @@ impl<'a, T: Copy> InputBuffer<'a, T> {
     }
 }
 
-pub struct OutputBuffer<'a, T: Copy> {
+pub struct AudioDataMut<'a, T: Copy> {
     interleaved_audio: &'a mut [T],
     num_channels: usize,
     num_frames: usize,
 }
 
-impl<'a, T: Copy> OutputBuffer<'a, T> {
+impl<'a, T: Copy> AudioDataMut<'a, T> {
     pub fn from(interleaved_audio: &'a mut [T], num_channels: usize) -> Self {
         Self {
             num_frames: interleaved_audio.len() / num_channels,

@@ -15,6 +15,8 @@ resolver = "2"
 edition = "2021"
 rust-version = "1.72"
 version = "0.1.0"
+license = "MIT OR Apache-2.0"
+authors = ["Stephan Eckes <stephan@neodsp.com>"]
 
 [profile.dev.package."*"]
 # Optimize all dependencies in debug build
@@ -32,3 +34,4 @@ thiserror = "1.0.58"
 rtaudio = "0.3.3"
 crossbeam-channel = "0.5.12"
 ndarray = "0.15.6"
+easer = "0.3.0"

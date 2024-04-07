@@ -1,4 +1,4 @@
-use rt_tools::audio_buffers::{InputBuffer, OutputBuffer};
+use rt_tools::audio_data::{AudioData, AudioDataMut};
 
 use self::{
     audio_backend_error::AudioBackendError, device_config::DeviceConfig, device_name::DeviceName,
@@ -70,7 +70,7 @@ pub trait AudioBackend {
     /// starts the audio stream with the currently selected options
     fn start_stream(
         &mut self,
-        process_fn: impl FnMut(OutputBuffer<'_, f32>, InputBuffer<'_, f32>) + Send + 'static,
+        process_fn: impl FnMut(AudioDataMut<'_, f32>, AudioData<'_, f32>) + Send + 'static,
     ) -> Result<(), AudioBackendError>;
     /// call this to stop the audio stream
     fn stop_stream(&mut self) -> Result<(), AudioBackendError>;

@@ -3,7 +3,7 @@ use std::{
     sync::mpsc::{self, Receiver},
 };
 
-use rt_tools::audio_buffers::{InputBuffer, OutputBuffer};
+use rt_tools::audio_data::{AudioData, AudioDataMut};
 use rtaudio::{DeviceParams, Host};
 
 use crate::{
@@ -333,7 +333,7 @@ impl AudioBackend for RtAudioBackend {
 
     fn start_stream(
         &mut self,
-        mut process_fn: impl FnMut(OutputBuffer<'_, f32>, InputBuffer<'_, f32>) + Send + 'static,
+        mut process_fn: impl FnMut(AudioDataMut<'_, f32>, AudioData<'_, f32>) + Send + 'static,
     ) -> Result<(), AudioBackendError> {
         if let Some(host) = self.host.take() {
             let (sender, receiver) = mpsc::channel();
@@ -380,8 +380,8 @@ impl AudioBackend for RtAudioBackend {
                               _status: rtaudio::StreamStatus| {
                             if let rtaudio::Buffers::Float32 { output, input } = buffers {
                                 process_fn(
-                                    OutputBuffer::from(output, info.out_channels),
-                                    InputBuffer::from(input, info.in_channels),
+                                    AudioDataMut::from(output, info.out_channels),
+                                    AudioData::from(input, info.in_channels),
                                 );
                             }
                         },
