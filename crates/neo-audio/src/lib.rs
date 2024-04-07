@@ -1,7 +1,7 @@
+use audio_backend::{audio_backend_error::AudioBackendError, AudioBackend};
 use audio_processor::AudioProcessor;
 use crossbeam_channel::{Receiver, Sender};
 use error::NeoAudioError;
-use system_audio::{system_audio_error::SystemAudioError, SystemAudio};
 
 pub mod audio_processor;
 pub mod error;
@@ -9,53 +9,53 @@ pub mod prelude;
 #[cfg(feature = "processors")]
 pub mod processors;
 
-pub struct NeoAudio<S, P>
+pub struct NeoAudio<B, P>
 where
-    S: SystemAudio,
+    B: AudioBackend,
     P: AudioProcessor + Send + 'static,
     <P as audio_processor::AudioProcessor>::Message: std::marker::Send,
 {
-    system_audio: S,
+    backend: B,
     sender: Sender<P::Message>,
     receiver: Receiver<P::Message>,
 }
 
-unsafe impl<S, P> Sync for NeoAudio<S, P>
+unsafe impl<B, P> Sync for NeoAudio<B, P>
 where
-    S: SystemAudio,
+    B: AudioBackend,
     P: AudioProcessor + Send + 'static,
     <P as audio_processor::AudioProcessor>::Message: std::marker::Send,
 {
 }
-unsafe impl<S, P> Send for NeoAudio<S, P>
+unsafe impl<B, P> Send for NeoAudio<B, P>
 where
-    S: SystemAudio,
+    B: AudioBackend,
     P: AudioProcessor + Send + 'static,
     <P as audio_processor::AudioProcessor>::Message: std::marker::Send,
 {
 }
 
-impl<S, P> NeoAudio<S, P>
+impl<B, P> NeoAudio<B, P>
 where
-    S: SystemAudio,
+    B: AudioBackend,
     P: AudioProcessor + Send + 'static,
     <P as audio_processor::AudioProcessor>::Message: std::marker::Send,
 {
     pub fn new() -> Result<Self, NeoAudioError> {
         let (sender, receiver) = crossbeam_channel::bounded(1024);
         Ok(Self {
-            system_audio: S::default()?,
+            backend: B::default()?,
             sender,
             receiver,
         })
     }
 
-    pub fn system_audio(&self) -> &S {
-        &self.system_audio
+    pub fn backend(&self) -> &B {
+        &self.backend
     }
 
-    pub fn system_audio_mut(&mut self) -> &mut S {
-        &mut self.system_audio
+    pub fn system_audio_mut(&mut self) -> &mut B {
+        &mut self.backend
     }
 
     pub fn sender(&self) -> &Sender<P::Message> {
@@ -69,13 +69,13 @@ where
         Ok(())
     }
 
-    pub fn start_audio(&mut self, mut processor: P) -> Result<(), SystemAudioError>
+    pub fn start_audio(&mut self, mut processor: P) -> Result<(), AudioBackendError>
     where
         <P as audio_processor::AudioProcessor>::Message: std::marker::Send,
     {
-        processor.prepare(self.system_audio.config());
+        processor.prepare(self.backend.config());
         let rcv = self.receiver.clone();
-        self.system_audio.start_stream(move |output, input| {
+        self.backend.start_stream(move |output, input| {
             // receive all messages
             for _ in 0..rcv.len() {
                 match rcv.try_recv() {
@@ -91,8 +91,8 @@ where
     }
 
     pub fn stop_audio(&mut self) -> Result<(), NeoAudioError> {
-        self.system_audio.stop_stream()?;
-        self.system_audio.stream_error()?;
+        self.backend.stop_stream()?;
+        self.backend.stream_error()?;
         Ok(())
     }
 }

@@ -7,8 +7,8 @@ use rt_tools::audio_buffers::{InputBuffer, OutputBuffer};
 use rtaudio::{DeviceParams, Host};
 
 use crate::{
-    device_config::DeviceConfig, device_name::DeviceName, system_audio_error::SystemAudioError,
-    SystemAudio, DEFAULT_NUM_FRAMES, DEFAULT_SAMPLE_RATE,
+    audio_backend_error::AudioBackendError, device_config::DeviceConfig, device_name::DeviceName,
+    AudioBackend, DEFAULT_NUM_FRAMES, DEFAULT_SAMPLE_RATE,
 };
 
 pub struct RtAudioBackend {
@@ -25,7 +25,7 @@ pub struct RtAudioBackend {
     selected_sample_rate: u32,
     selected_num_frames: u32,
     stream_handle: Option<rtaudio::StreamHandle>,
-    error_receiver: Option<Receiver<SystemAudioError>>,
+    error_receiver: Option<Receiver<AudioBackendError>>,
 }
 
 impl std::fmt::Debug for RtAudioBackend {
@@ -50,8 +50,8 @@ impl std::fmt::Debug for RtAudioBackend {
     }
 }
 
-impl SystemAudio for RtAudioBackend {
-    fn default() -> Result<Self, SystemAudioError> {
+impl AudioBackend for RtAudioBackend {
+    fn default() -> Result<Self, AudioBackendError> {
         let host = rtaudio::Host::new(rtaudio::Api::Unspecified)?;
         let selected_api = host.api();
         let mut neo_audio = Self {
@@ -76,7 +76,7 @@ impl SystemAudio for RtAudioBackend {
         Ok(neo_audio)
     }
 
-    fn update_devices(&mut self) -> Result<(), SystemAudioError> {
+    fn update_devices(&mut self) -> Result<(), AudioBackendError> {
         if let Some(host) = self.host.as_mut() {
             self.input_devices = host.iter_input_devices().collect();
             self.output_devices = host.iter_output_devices().collect();
@@ -107,7 +107,7 @@ impl SystemAudio for RtAudioBackend {
 
             Ok(())
         } else {
-            Err(SystemAudioError::StreamRunning)
+            Err(AudioBackendError::StreamRunning)
         }
     }
 
@@ -156,18 +156,18 @@ impl SystemAudio for RtAudioBackend {
         self.apis.iter().map(|api| api.get_display_name()).collect()
     }
 
-    fn set_api(&mut self, api_name: &str) -> Result<(), SystemAudioError> {
+    fn set_api(&mut self, api_name: &str) -> Result<(), AudioBackendError> {
         if let Some(host) = self.host.as_mut() {
             self.selected_api = *self
                 .apis
                 .iter()
                 .find(|api| api.get_display_name().contains(api_name))
-                .ok_or(SystemAudioError::ApiNotFound)?;
+                .ok_or(AudioBackendError::ApiNotFound)?;
             *host = Host::new(self.selected_api)?;
             self.update_devices()?;
             Ok(())
         } else {
-            Err(SystemAudioError::StreamRunning)
+            Err(AudioBackendError::StreamRunning)
         }
     }
 
@@ -182,7 +182,7 @@ impl SystemAudio for RtAudioBackend {
             .collect()
     }
 
-    fn set_output_device(&mut self, device: DeviceName) -> Result<(), SystemAudioError> {
+    fn set_output_device(&mut self, device: DeviceName) -> Result<(), AudioBackendError> {
         if let Some(host) = self.host.as_ref() {
             self.selected_output_device = match device {
                 DeviceName::None => None,
@@ -191,7 +191,7 @@ impl SystemAudio for RtAudioBackend {
                     self.output_devices
                         .iter()
                         .find(|device| device.name.contains(&name))
-                        .ok_or(SystemAudioError::OutputDeviceNotFound)?
+                        .ok_or(AudioBackendError::OutputDeviceNotFound)?
                         .clone(),
                 ),
             };
@@ -199,7 +199,7 @@ impl SystemAudio for RtAudioBackend {
             self.update_sample_rates();
             Ok(())
         } else {
-            Err(SystemAudioError::StreamRunning)
+            Err(AudioBackendError::StreamRunning)
         }
     }
 
@@ -214,7 +214,7 @@ impl SystemAudio for RtAudioBackend {
             .collect()
     }
 
-    fn set_input_device(&mut self, device: DeviceName) -> Result<(), SystemAudioError> {
+    fn set_input_device(&mut self, device: DeviceName) -> Result<(), AudioBackendError> {
         if let Some(host) = self.host.as_ref() {
             self.selected_input_device = match device {
                 DeviceName::None => None,
@@ -223,7 +223,7 @@ impl SystemAudio for RtAudioBackend {
                     self.input_devices
                         .iter()
                         .find(|device| device.name.contains(&name))
-                        .ok_or(SystemAudioError::InputDeviceNotFound)?
+                        .ok_or(AudioBackendError::InputDeviceNotFound)?
                         .clone(),
                 ),
             };
@@ -231,7 +231,7 @@ impl SystemAudio for RtAudioBackend {
             self.update_sample_rates();
             Ok(())
         } else {
-            Err(SystemAudioError::StreamRunning)
+            Err(AudioBackendError::StreamRunning)
         }
     }
 
@@ -246,9 +246,9 @@ impl SystemAudio for RtAudioBackend {
             .unwrap_or(0)
     }
 
-    fn set_num_output_channels(&mut self, ch: u32) -> Result<(), SystemAudioError> {
+    fn set_num_output_channels(&mut self, ch: u32) -> Result<(), AudioBackendError> {
         if ch > self.available_num_output_channels() {
-            return Err(SystemAudioError::NumOutputChannels);
+            return Err(AudioBackendError::NumOutputChannels);
         }
         self.selected_num_output_channels = ch;
         Ok(())
@@ -265,9 +265,9 @@ impl SystemAudio for RtAudioBackend {
             .unwrap_or(0)
     }
 
-    fn set_num_input_channels(&mut self, ch: u32) -> Result<(), SystemAudioError> {
+    fn set_num_input_channels(&mut self, ch: u32) -> Result<(), AudioBackendError> {
         if ch > self.available_num_input_channels() {
-            return Err(SystemAudioError::NumInputChannels);
+            return Err(AudioBackendError::NumInputChannels);
         }
         self.selected_num_input_channels = ch;
         Ok(())
@@ -285,16 +285,16 @@ impl SystemAudio for RtAudioBackend {
         self.selected_sample_rate
     }
 
-    fn set_sample_rate(&mut self, sample_rate: u32) -> Result<(), SystemAudioError> {
+    fn set_sample_rate(&mut self, sample_rate: u32) -> Result<(), AudioBackendError> {
         if self.sample_rates.contains(&sample_rate) {
             self.selected_sample_rate = sample_rate;
             Ok(())
         } else {
-            Err(SystemAudioError::SampleRate)
+            Err(AudioBackendError::SampleRate)
         }
     }
 
-    fn set_num_frames(&mut self, num_frames: u32) -> Result<(), SystemAudioError> {
+    fn set_num_frames(&mut self, num_frames: u32) -> Result<(), AudioBackendError> {
         self.selected_num_frames = num_frames;
         Ok(())
     }
@@ -308,7 +308,7 @@ impl SystemAudio for RtAudioBackend {
         self.selected_num_frames
     }
 
-    fn set_config(&mut self, config: &DeviceConfig) -> Result<(), SystemAudioError> {
+    fn set_config(&mut self, config: &DeviceConfig) -> Result<(), AudioBackendError> {
         self.set_api(&config.api)?;
         self.set_output_device(config.output_device.clone())?;
         self.set_input_device(config.input_device.clone())?;
@@ -334,7 +334,7 @@ impl SystemAudio for RtAudioBackend {
     fn start_stream(
         &mut self,
         mut process_fn: impl FnMut(OutputBuffer<'_, f32>, InputBuffer<'_, f32>) + Send + 'static,
-    ) -> Result<(), SystemAudioError> {
+    ) -> Result<(), AudioBackendError> {
         if let Some(host) = self.host.take() {
             let (sender, receiver) = mpsc::channel();
             self.error_receiver = Some(receiver);
@@ -360,7 +360,7 @@ impl SystemAudio for RtAudioBackend {
                     rtaudio::StreamOptions::default(),
                     move |error| {
                         sender
-                            .send(SystemAudioError::from(error))
+                            .send(AudioBackendError::from(error))
                             .expect("sending error should work")
                     },
                 )
@@ -391,11 +391,11 @@ impl SystemAudio for RtAudioBackend {
 
             Ok(())
         } else {
-            Err(SystemAudioError::Unspecified)
+            Err(AudioBackendError::Unspecified)
         }
     }
 
-    fn stop_stream(&mut self) -> Result<(), SystemAudioError> {
+    fn stop_stream(&mut self) -> Result<(), AudioBackendError> {
         if let Some(mut stream_handle) = self.stream_handle.take() {
             stream_handle.stop();
         }
@@ -406,7 +406,7 @@ impl SystemAudio for RtAudioBackend {
         Ok(())
     }
 
-    fn stream_error(&self) -> Result<(), SystemAudioError> {
+    fn stream_error(&self) -> Result<(), AudioBackendError> {
         if let Some(receiver) = self.error_receiver.as_ref() {
             if let Ok(error) = receiver.try_recv() {
                 return Err(error);
@@ -416,7 +416,7 @@ impl SystemAudio for RtAudioBackend {
     }
 }
 
-impl From<rtaudio::RtAudioError> for SystemAudioError {
+impl From<rtaudio::RtAudioError> for AudioBackendError {
     fn from(value: rtaudio::RtAudioError) -> Self {
         Self::Backend(value.to_string())
     }

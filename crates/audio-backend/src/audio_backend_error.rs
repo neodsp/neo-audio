@@ -1,7 +1,7 @@
 use thiserror::Error;
 
 #[derive(Error, Debug)]
-pub enum SystemAudioError {
+pub enum AudioBackendError {
     #[error("Stream is running, please stop stream before changing devices.")]
     StreamRunning,
     #[error("Api not found")]

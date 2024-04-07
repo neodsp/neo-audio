@@ -15,8 +15,8 @@ fn main() -> Result<(), NeoAudioError> {
     let mut neo_audio = NeoAudio::<RtAudioBackend, _>::new()?;
 
     // generate stereo sine
-    let sine_left = generate_sine_wave(440.0, neo_audio.system_audio().sample_rate(), 1.0);
-    let sine_right = generate_sine_wave(600.0, neo_audio.system_audio().sample_rate(), 1.0);
+    let sine_left = generate_sine_wave(440.0, neo_audio.backend().sample_rate(), 1.0);
+    let sine_right = generate_sine_wave(600.0, neo_audio.backend().sample_rate(), 1.0);
     let mut stereo_sine = Array2::default((2, sine_left.len()));
     sine_left.iter().enumerate().for_each(|(i, v)| {
         stereo_sine[[0, i]] = *v;

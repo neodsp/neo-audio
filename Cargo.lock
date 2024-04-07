@@ -86,6 +86,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "audio-backend"
+version = "0.1.0"
+dependencies = [
+ "rt-tools",
+ "rtaudio",
+ "serde",
+ "thiserror",
+]
+
+[[package]]
 name = "autocfg"
 version = "1.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1776,10 +1786,10 @@ dependencies = [
 name = "neo-audio"
 version = "0.1.0"
 dependencies = [
+ "audio-backend",
  "crossbeam-channel",
  "ndarray",
  "rt-tools",
- "system-audio",
  "thiserror",
 ]
 
@@ -2967,16 +2977,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2047c6ded9c721764247e62cd3b03c09ffc529b2ba5b10ec482ae507a4a70160"
 
 [[package]]
-name = "system-audio"
-version = "0.1.0"
-dependencies = [
- "rt-tools",
- "rtaudio",
- "serde",
- "thiserror",
-]
-
-[[package]]
 name = "system-deps"
 version = "6.2.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3145,6 +3145,7 @@ dependencies = [
 name = "tauri-example"
 version = "0.1.0"
 dependencies = [
+ "neo-audio",
  "serde",
  "serde_json",
  "tauri",

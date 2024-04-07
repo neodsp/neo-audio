@@ -1,5 +1,5 @@
+pub use audio_backend::device_config::DeviceConfig;
 pub use rt_tools::audio_buffers::{InputBuffer, OutputBuffer};
-pub use system_audio::device_config::DeviceConfig;
 
 pub trait AudioProcessor {
     type Message;

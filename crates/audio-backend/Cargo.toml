@@ -1,5 +1,5 @@
 [package]
-name = "system-audio"
+name = "audio-backend"
 edition.workspace = true
 rust-version.workspace = true
 version.workspace = true

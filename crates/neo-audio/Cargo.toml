@@ -8,7 +8,7 @@ version.workspace = true
 
 [dependencies]
 rt-tools = { workspace = true }
-system-audio = { workspace = true }
+audio-backend = { workspace = true }
 crossbeam-channel = { workspace = true }
 thiserror = { workspace = true }
 ndarray = { workspace = true, optional = true }

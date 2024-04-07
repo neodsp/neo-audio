@@ -56,7 +56,7 @@ impl Player {
 impl AudioProcessor for Player {
     type Message = PlayerMessage;
 
-    fn prepare(&mut self, _config: system_audio::device_config::DeviceConfig) {}
+    fn prepare(&mut self, _config: audio_backend::device_config::DeviceConfig) {}
 
     fn message_process(&mut self, message: Self::Message) {
         match message {
