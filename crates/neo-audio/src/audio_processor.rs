@@ -1,5 +1,5 @@
 pub use audio_backend::device_config::DeviceConfig;
-pub use rt_tools::audio_data::{AudioData, AudioDataMut};
+pub use rt_tools::interleaved_audio::{InterleavedAudio, InterleavedAudioMut};
 
 pub trait AudioProcessor {
     type Message;
@@ -16,5 +16,5 @@ pub trait AudioProcessor {
 
     /// here you can manipulate the audio streams, copy incoming to outgoing data.
     /// do not do anything that blocks the audio stream.
-    fn process(&mut self, output: AudioDataMut<'_, f32>, input: AudioData<'_, f32>);
+    fn process(&mut self, output: InterleavedAudioMut<'_, f32>, input: InterleavedAudio<'_, f32>);
 }

@@ -235,7 +235,11 @@ impl AudioProcessor for MyProcessor {
         }
     }
 
-    fn process(&mut self, mut output: AudioDataMut<'_, f32>, input: AudioData<'_, f32>) {
+    fn process(
+        &mut self,
+        mut output: InterleavedAudioMut<'_, f32>,
+        input: InterleavedAudio<'_, f32>,
+    ) {
         if input.num_channels() > 0 {
             self.meter.process(input.channel_iter(0));
         }

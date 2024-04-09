@@ -82,8 +82,8 @@ impl AudioProcessor for Player {
 
     fn process(
         &mut self,
-        mut output: rt_tools::audio_data::AudioDataMut<'_, f32>,
-        _input: rt_tools::audio_data::AudioData<'_, f32>,
+        mut output: rt_tools::interleaved_audio::InterleavedAudioMut<'_, f32>,
+        _input: rt_tools::interleaved_audio::InterleavedAudio<'_, f32>,
     ) {
         let play_ch = output.num_channels().min(self.audio.nrows());
         for frame in output.frames_iter_mut() {

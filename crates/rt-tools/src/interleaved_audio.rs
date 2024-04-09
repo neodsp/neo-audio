@@ -4,25 +4,25 @@ use std::{
 };
 
 #[derive(Clone)]
-pub struct AudioData<'a, T: Copy> {
-    interleaved_audio: &'a [T],
+pub struct InterleavedAudio<'a, T: Copy> {
+    data: &'a [T],
     num_channels: usize,
     num_frames: usize,
 }
 
-impl<'a, T: Copy> AudioData<'a, T> {
-    pub fn from(interleaved_audio: &'a [T], num_channels: usize) -> Self {
+impl<'a, T: Copy> InterleavedAudio<'a, T> {
+    pub fn from_slice(data: &'a [T], num_channels: usize) -> Self {
         Self {
-            num_frames: interleaved_audio.len() / num_channels,
-            interleaved_audio,
+            num_frames: data.len() / num_channels,
+            data,
             num_channels,
         }
     }
 
-    pub fn from_audio_data_mut(&mut self, audio_data: AudioDataMut<'a, T>) -> Self {
+    pub fn from_audio_data_mut(&mut self, audio_data: InterleavedAudioMut<'a, T>) -> Self {
         Self {
             num_frames: audio_data.num_frames(),
-            interleaved_audio: audio_data.interleaved_audio,
+            data: audio_data.data,
             num_channels: audio_data.num_channels,
         }
     }
@@ -39,19 +39,16 @@ impl<'a, T: Copy> AudioData<'a, T> {
     /// a frame is a Chunk containing all channels
     /// a channel can be accessed by `chunk[num_channel]`
     pub fn frames_iter(&self) -> Chunks<'_, T> {
-        self.interleaved_audio.chunks(self.num_channels)
+        self.data.chunks(self.num_channels)
     }
 
     /// this will return an iterator over one channel
-    pub fn channel_iter(&self, channel: usize) -> StepBy<Skip<Iter<'_, T>>> {
-        self.interleaved_audio
-            .iter()
-            .skip(channel)
-            .step_by(self.num_channels)
+    pub fn channel_iter(&self, channel: usize) -> impl Iterator<Item = &'a T> {
+        self.data.iter().skip(channel).step_by(self.num_channels)
     }
 
-    pub fn interleaved_audio(&self) -> &[T] {
-        self.interleaved_audio
+    pub fn data(&self) -> &[T] {
+        self.data
     }
 
     /// returns the actual number of samples written
@@ -64,17 +61,17 @@ impl<'a, T: Copy> AudioData<'a, T> {
     }
 }
 
-pub struct AudioDataMut<'a, T: Copy> {
-    interleaved_audio: &'a mut [T],
+pub struct InterleavedAudioMut<'a, T: Copy> {
+    data: &'a mut [T],
     num_channels: usize,
     num_frames: usize,
 }
 
-impl<'a, T: Copy> AudioDataMut<'a, T> {
-    pub fn from(interleaved_audio: &'a mut [T], num_channels: usize) -> Self {
+impl<'a, T: Copy> InterleavedAudioMut<'a, T> {
+    pub fn from_slice(data: &'a mut [T], num_channels: usize) -> Self {
         Self {
-            num_frames: interleaved_audio.len() / num_channels,
-            interleaved_audio,
+            num_frames: data.len() / num_channels,
+            data,
             num_channels,
         }
     }
@@ -91,34 +88,31 @@ impl<'a, T: Copy> AudioDataMut<'a, T> {
     /// a frame is a Chunk containing all channels
     /// a channel can be accessed by `chunk[num_channel]`
     pub fn frames_iter(&self) -> Chunks<'_, T> {
-        self.interleaved_audio.chunks(self.num_channels)
+        self.data.chunks(self.num_channels)
     }
 
     pub fn frames_iter_mut(&mut self) -> ChunksMut<'_, T> {
-        self.interleaved_audio.chunks_mut(self.num_channels)
+        self.data.chunks_mut(self.num_channels)
     }
 
     /// this will return an iterator over one channel
     pub fn channel_iter(&self, channel: usize) -> StepBy<Skip<Iter<'_, T>>> {
-        self.interleaved_audio
-            .iter()
-            .skip(channel)
-            .step_by(self.num_channels)
+        self.data.iter().skip(channel).step_by(self.num_channels)
     }
 
     pub fn channel_iter_mut(&mut self, channel: usize) -> StepBy<Skip<IterMut<'_, T>>> {
-        self.interleaved_audio
+        self.data
             .iter_mut()
             .skip(channel)
             .step_by(self.num_channels)
     }
 
-    pub fn interleaved_audio(&self) -> &[T] {
-        self.interleaved_audio
+    pub fn data(&self) -> &[T] {
+        self.data
     }
 
-    pub fn interleaved_audio_mut(&mut self) -> &mut [T] {
-        self.interleaved_audio
+    pub fn data_mut(&mut self) -> &mut [T] {
+        self.data
     }
 
     /// returns the actual number of samples written
