@@ -1,4 +1,5 @@
 use eframe::egui::{self, remap};
+use level_meter::level_meter;
 use neo_audio::{
     prelude::*,
     processors::player::{bounded, Receiver, Sender},
@@ -8,17 +9,19 @@ use rt_tools::{
     smooth_value::{Easing, Linear, SmoothValue},
 };
 
+mod level_meter;
+
 fn main() {
     let native_options = eframe::NativeOptions::default();
     eframe::run_native(
-        "My egui App",
+        "neo-audio egui example",
         native_options,
-        Box::new(|cc| Box::new(MyEguiApp::new(cc))),
+        Box::new(|cc| Box::new(NeoAudioEguiExample::new(cc))),
     )
     .unwrap();
 }
 
-struct MyEguiApp {
+struct NeoAudioEguiExample {
     neo_audio: NeoAudio<RtAudioBackend, MyProcessor>,
     audio_running: bool,
     config: DeviceConfig,
@@ -28,7 +31,7 @@ struct MyEguiApp {
     input_level: SmoothValue,
 }
 
-impl MyEguiApp {
+impl NeoAudioEguiExample {
     fn new(_cc: &eframe::CreationContext<'_>) -> Self {
         // Customize egui here with cc.egui_ctx.set_fonts and cc.egui_ctx.set_visuals.
         // Restore app state using cc.storage (requires the "persistence" feature).
@@ -37,7 +40,7 @@ impl MyEguiApp {
         let neo_audio = NeoAudio::<RtAudioBackend, MyProcessor>::new().unwrap();
         let backend = neo_audio.backend();
         let (ui_sender, ui_receiver) = bounded(1024);
-        let mut input_level = SmoothValue::new(0.0, Linear::ease_in_out);
+        let mut input_level = SmoothValue::new(-60.0, Linear::ease_in_out);
         input_level.prepare(60, 100);
         Self {
             audio_running: false,
@@ -51,11 +54,11 @@ impl MyEguiApp {
     }
 }
 
-impl eframe::App for MyEguiApp {
+impl eframe::App for NeoAudioEguiExample {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         ctx.set_pixels_per_point(1.5);
         egui::CentralPanel::default().show(ctx, |ui| {
-            ui.heading("NeoAudio egui example!");
+            ui.heading("neo-audio egui example!");
 
             let backend = self.neo_audio.backend();
 
@@ -178,19 +181,18 @@ impl eframe::App for MyEguiApp {
                     match self.ui_receiver.try_recv() {
                         Ok(message) => match message {
                             UiMessage::Level(level) => {
-                                dbg!(level.peak_db);
-                                let new_level = remap(level.peak_db, -30.0..=0.0, 0.0..=1.0);
-                                self.input_level.set_target_value(new_level);
+                                self.input_level.set_target_value(level.peak_db);
                             }
                         },
                         _ => break,
                     }
                 }
+                ui.ctx().request_repaint();
             } else {
-                self.input_level.set_current_and_target_value(0.0);
+                self.input_level.set_current_and_target_value(-60.0);
             }
 
-            ui.add(egui::ProgressBar::new(self.input_level.next_value()).animate(true));
+            ui.add(level_meter(-60.0..=10.0, self.input_level.next_value()));
         });
     }
 }
