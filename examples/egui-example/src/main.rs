@@ -1,4 +1,4 @@
-use eframe::egui::{self, remap};
+use eframe::egui;
 use level_meter::level_meter;
 use neo_audio::{
     prelude::*,
@@ -56,7 +56,7 @@ impl NeoAudioEguiExample {
 
 impl eframe::App for NeoAudioEguiExample {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
-        ctx.set_pixels_per_point(1.5);
+        ctx.set_pixels_per_point(2.0);
         egui::CentralPanel::default().show(ctx, |ui| {
             ui.heading("neo-audio egui example!");
 

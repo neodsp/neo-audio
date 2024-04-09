@@ -1,6 +1,6 @@
 use std::ops::RangeInclusive;
 
-use eframe::egui::{self, Color32};
+use eframe::egui::{self, Align2, Color32, FontId, Stroke};
 
 #[allow(dead_code)]
 fn level_meter_ui(
@@ -26,7 +26,14 @@ fn level_meter_ui(
         } else {
             Color32::RED
         };
-        ui.painter().rect(rect, 0.0, color, visuals.fg_stroke);
+        ui.painter().rect(rect, 0.0, color, Stroke::NONE);
+        // ui.painter().text(
+        //     rect.left_center(),
+        //     Align2::LEFT_CENTER,
+        //     format!("{:.1} dB", level_db),
+        //     FontId::default(),
+        //     visuals.text_color(),
+        // );
     }
 
     response
