@@ -88,7 +88,7 @@ impl AudioBackend for RtAudioBackend {
                     .iter()
                     .any(|device| device.id == input_device.id)
                 {
-                    self.selected_input_device = host.default_input_device().ok();
+                    self.set_output_device(DeviceName::Default)?;
                 }
             }
 
@@ -99,7 +99,7 @@ impl AudioBackend for RtAudioBackend {
                     .iter()
                     .any(|device| device.id == output_device.id)
                 {
-                    self.selected_output_device = host.default_output_device().ok();
+                    self.set_input_device(DeviceName::Default)?;
                 }
             }
 
@@ -112,22 +112,14 @@ impl AudioBackend for RtAudioBackend {
     }
 
     fn update_sample_rates(&mut self) {
-        let input_sample_rates = self.selected_input_device.as_ref().map(|device| {
-            self.input_devices
-                .iter()
-                .find(|d| d.id == device.id)
-                .expect("the selected input must be present")
-                .sample_rates
-                .clone()
-        });
-        let output_sample_rates = self.selected_output_device.as_ref().map(|device| {
-            self.output_devices
-                .iter()
-                .find(|d| d.id == device.id)
-                .expect("the selected output must be present")
-                .sample_rates
-                .clone()
-        });
+        let input_sample_rates = self
+            .selected_input_device
+            .as_ref()
+            .map(|device| device.sample_rates.clone());
+        let output_sample_rates = self
+            .selected_output_device
+            .as_ref()
+            .map(|device| device.sample_rates.clone());
         self.sample_rates = match (input_sample_rates, output_sample_rates) {
             (None, None) => vec![],
             (None, Some(out_sr)) => out_sr,
@@ -308,15 +300,21 @@ impl AudioBackend for RtAudioBackend {
         self.selected_num_frames
     }
 
-    fn set_config(&mut self, config: &DeviceConfig) -> Result<(), AudioBackendError> {
-        self.set_api(&config.api)?;
-        self.set_output_device(config.output_device.clone())?;
-        self.set_input_device(config.input_device.clone())?;
-        self.set_num_output_channels(config.num_output_ch)?;
-        self.set_num_input_channels(config.num_input_ch)?;
-        self.set_sample_rate(config.sample_rate)?;
-        self.set_num_frames(config.num_frames)?;
-        Ok(())
+    fn set_config(&mut self, config: &DeviceConfig) -> Result<DeviceConfig, AudioBackendError> {
+        if config.api != self.api() {
+            self.set_api(&config.api)?;
+            self.set_output_device(DeviceName::Default)?;
+            self.set_input_device(DeviceName::Default)?;
+            self.update_devices()?;
+        } else {
+            self.set_output_device(config.output_device.clone())?;
+            self.set_input_device(config.input_device.clone())?;
+            self.set_num_output_channels(config.num_output_ch)?;
+            self.set_num_input_channels(config.num_input_ch)?;
+            self.set_sample_rate(config.sample_rate)?;
+            self.set_num_frames(config.num_frames)?;
+        }
+        Ok(self.config())
     }
 
     fn config(&self) -> DeviceConfig {

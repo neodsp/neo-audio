@@ -89,7 +89,7 @@ impl eframe::App for NeoAudioEguiExample {
             egui::ComboBox::from_label("Num Output Channels")
                 .selected_text(format!("{:?}", backend.num_output_channels()))
                 .show_ui(ui, |ui| {
-                    for ch in 1..backend.available_num_output_channels() {
+                    for ch in 1..=backend.available_num_output_channels() {
                         ui.selectable_value(&mut self.config.num_output_ch, ch, ch.to_string());
                     }
                 });
@@ -113,7 +113,7 @@ impl eframe::App for NeoAudioEguiExample {
             egui::ComboBox::from_label("Num Input Channels")
                 .selected_text(format!("{:?}", backend.num_input_channels()))
                 .show_ui(ui, |ui| {
-                    for ch in 1..backend.available_num_input_channels() {
+                    for ch in 1..=backend.available_num_input_channels() {
                         ui.selectable_value(&mut self.config.num_input_ch, ch, ch.to_string());
                     }
                 });
@@ -145,7 +145,9 @@ impl eframe::App for NeoAudioEguiExample {
                     self.neo_audio.stop_audio().unwrap();
                     self.audio_running = false;
                 }
-                self.neo_audio
+                // update config and receive actually applied config
+                self.config = self
+                    .neo_audio
                     .backend_mut()
                     .set_config(&self.config)
                     .unwrap();

@@ -63,7 +63,7 @@ pub trait AudioBackend {
     fn num_frames(&self) -> u32;
 
     /// set config all at once, good for loading application state at the start of the application
-    fn set_config(&mut self, config: &DeviceConfig) -> Result<(), AudioBackendError>;
+    fn set_config(&mut self, config: &DeviceConfig) -> Result<DeviceConfig, AudioBackendError>;
     /// get the selected config all at once, for saving state
     fn config(&self) -> DeviceConfig;
 
