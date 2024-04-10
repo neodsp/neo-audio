@@ -18,13 +18,13 @@ fn main() -> iced::Result {
 
 #[derive(Debug, Clone)]
 enum AppMessage {
-    ApiChanged(String),
-    OutputDeviceChanged(String),
-    NumOutputChChanged(u32),
-    InputDeviceChanged(String),
-    NumInputChChanged(u32),
-    SampleRateChanged(u32),
-    NumFramesChanged(u32),
+    Api(String),
+    OutputDevice(String),
+    NumOutputCh(u32),
+    InputDevice(String),
+    NumInputCh(u32),
+    SampleRate(u32),
+    NumFrames(u32),
 }
 
 struct NeoAudioIcedApp {
@@ -80,37 +80,37 @@ impl NeoAudioIcedApp {
 
     fn update(&mut self, message: AppMessage) {
         match message {
-            AppMessage::ApiChanged(api) => {
+            AppMessage::Api(api) => {
                 self.neo_audio.backend_mut().set_api(&api).unwrap();
             }
-            AppMessage::OutputDeviceChanged(device) => {
+            AppMessage::OutputDevice(device) => {
                 self.neo_audio
                     .backend_mut()
                     .set_output_device(DeviceName::Name(device))
                     .unwrap();
             }
-            AppMessage::NumOutputChChanged(ch) => {
+            AppMessage::NumOutputCh(ch) => {
                 self.neo_audio
                     .backend_mut()
                     .set_num_output_channels(ch)
                     .unwrap();
             }
-            AppMessage::InputDeviceChanged(device) => {
+            AppMessage::InputDevice(device) => {
                 self.neo_audio
                     .backend_mut()
                     .set_input_device(DeviceName::Name(device))
                     .unwrap();
             }
-            AppMessage::NumInputChChanged(ch) => {
+            AppMessage::NumInputCh(ch) => {
                 self.neo_audio
                     .backend_mut()
                     .set_num_input_channels(ch)
                     .unwrap();
             }
-            AppMessage::SampleRateChanged(sr) => {
+            AppMessage::SampleRate(sr) => {
                 self.neo_audio.backend_mut().set_sample_rate(sr).unwrap();
             }
-            AppMessage::NumFramesChanged(nf) => {
+            AppMessage::NumFrames(nf) => {
                 self.neo_audio.backend_mut().set_num_frames(nf).unwrap();
             }
         };
@@ -122,7 +122,7 @@ impl NeoAudioIcedApp {
             &self.apis,
             &self.selected_config.api,
             Some(&self.selected_config.api),
-            AppMessage::ApiChanged,
+            AppMessage::Api,
         )
         .width(250);
 
@@ -131,7 +131,7 @@ impl NeoAudioIcedApp {
             &self.output_devices,
             "",
             device.as_ref(),
-            AppMessage::OutputDeviceChanged,
+            AppMessage::OutputDevice,
         )
         .width(250);
 
@@ -139,7 +139,7 @@ impl NeoAudioIcedApp {
             &self.output_channels,
             &self.selected_config.num_output_ch.to_string(),
             Some(&self.selected_config.num_output_ch),
-            AppMessage::NumOutputChChanged,
+            AppMessage::NumOutputCh,
         )
         .width(250);
 
@@ -148,7 +148,7 @@ impl NeoAudioIcedApp {
             &self.input_devices,
             "",
             device.as_ref(),
-            AppMessage::InputDeviceChanged,
+            AppMessage::InputDevice,
         )
         .width(250);
 
@@ -156,7 +156,7 @@ impl NeoAudioIcedApp {
             &self.input_channels,
             &self.selected_config.num_input_ch.to_string(),
             Some(&self.selected_config.num_input_ch),
-            AppMessage::NumInputChChanged,
+            AppMessage::NumInputCh,
         )
         .width(250);
 
@@ -164,7 +164,7 @@ impl NeoAudioIcedApp {
             &self.sample_rates,
             &self.selected_config.sample_rate.to_string(),
             Some(&self.selected_config.sample_rate),
-            AppMessage::SampleRateChanged,
+            AppMessage::SampleRate,
         )
         .width(250);
 
@@ -172,7 +172,7 @@ impl NeoAudioIcedApp {
             &self.num_frames,
             &self.selected_config.num_frames.to_string(),
             Some(&self.selected_config.num_frames),
-            AppMessage::NumFramesChanged,
+            AppMessage::NumFrames,
         )
         .width(250);
 
