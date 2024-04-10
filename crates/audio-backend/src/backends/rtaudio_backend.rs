@@ -132,6 +132,8 @@ impl AudioBackend for RtAudioBackend {
             }
         };
 
+        self.sample_rates.sort();
+
         // change the sample rate if the currently set is not available
         if !self.sample_rates.contains(&self.selected_sample_rate) {
             // select closest avaiblabe samplerate to default samplerate

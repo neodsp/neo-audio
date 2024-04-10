@@ -14,6 +14,15 @@ impl From<Option<&String>> for DeviceName {
     }
 }
 
+impl From<Option<String>> for DeviceName {
+    fn from(value: Option<String>) -> Self {
+        match value {
+            Some(name) => Self::Name(name),
+            None => Self::None,
+        }
+    }
+}
+
 impl From<DeviceName> for Option<String> {
     fn from(value: DeviceName) -> Self {
         match value {
