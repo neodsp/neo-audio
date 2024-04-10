@@ -1,8 +1,11 @@
 use iced::{
-    widget::{column, combo_box, container, scrollable},
+    widget::{button, column, combo_box, container, scrollable},
     Element, Length,
 };
-use neo_audio::{prelude::*, processors::player::Sender};
+use neo_audio::{
+    prelude::*,
+    processors::player::{Receiver, Sender},
+};
 use rt_tools::{
     level_meter::{Level, LevelMeter},
     smooth_value::{Easing, Linear, SmoothValue},
@@ -18,6 +21,7 @@ fn main() -> iced::Result {
 
 #[derive(Debug, Clone)]
 enum AppMessage {
+    UpdateDevices,
     Api(String),
     OutputDevice(String),
     NumOutputCh(u32),
@@ -25,6 +29,8 @@ enum AppMessage {
     NumInputCh(u32),
     SampleRate(u32),
     NumFrames(u32),
+    StartAudio,
+    StopAudio,
 }
 
 struct NeoAudioIcedApp {
@@ -37,10 +43,14 @@ struct NeoAudioIcedApp {
     sample_rates: combo_box::State<u32>,
     num_frames: combo_box::State<u32>,
     selected_config: DeviceConfig,
+    audio_running: bool,
+    ui_sender: Sender<UiMessage>,
+    ui_receiver: Receiver<UiMessage>,
 }
 
 impl NeoAudioIcedApp {
     fn new() -> Self {
+        let (sender, receiver) = bounded(1024);
         let neo_audio = NeoAudio::<RtAudioBackend, MyProcessor>::new().unwrap();
         Self {
             apis: combo_box::State::new(neo_audio.backend().available_apis()),
@@ -56,6 +66,9 @@ impl NeoAudioIcedApp {
             num_frames: combo_box::State::new(neo_audio.backend().available_num_frames()),
             selected_config: neo_audio.backend().config(),
             neo_audio,
+            audio_running: false,
+            ui_sender: sender,
+            ui_receiver: receiver,
         }
     }
 
@@ -80,41 +93,84 @@ impl NeoAudioIcedApp {
 
     fn update(&mut self, message: AppMessage) {
         match message {
+            AppMessage::UpdateDevices => {
+                if self.audio_running {
+                    self.neo_audio.stop_audio().unwrap();
+                }
+                self.update_devices();
+            }
             AppMessage::Api(api) => {
+                if self.audio_running {
+                    self.neo_audio.stop_audio().unwrap();
+                }
                 self.neo_audio.backend_mut().set_api(&api).unwrap();
+                self.update_devices();
             }
             AppMessage::OutputDevice(device) => {
+                if self.audio_running {
+                    self.neo_audio.stop_audio().unwrap();
+                }
                 self.neo_audio
                     .backend_mut()
                     .set_output_device(DeviceName::Name(device))
                     .unwrap();
+                self.update_devices();
             }
             AppMessage::NumOutputCh(ch) => {
+                if self.audio_running {
+                    self.neo_audio.stop_audio().unwrap();
+                }
                 self.neo_audio
                     .backend_mut()
                     .set_num_output_channels(ch)
                     .unwrap();
+                self.update_devices();
             }
             AppMessage::InputDevice(device) => {
+                if self.audio_running {
+                    self.neo_audio.stop_audio().unwrap();
+                }
                 self.neo_audio
                     .backend_mut()
                     .set_input_device(DeviceName::Name(device))
                     .unwrap();
+                self.update_devices();
             }
             AppMessage::NumInputCh(ch) => {
+                if self.audio_running {
+                    self.neo_audio.stop_audio().unwrap();
+                }
                 self.neo_audio
                     .backend_mut()
                     .set_num_input_channels(ch)
                     .unwrap();
+                self.update_devices();
             }
             AppMessage::SampleRate(sr) => {
+                if self.audio_running {
+                    self.neo_audio.stop_audio().unwrap();
+                }
                 self.neo_audio.backend_mut().set_sample_rate(sr).unwrap();
+                self.update_devices();
             }
             AppMessage::NumFrames(nf) => {
+                if self.audio_running {
+                    self.neo_audio.stop_audio().unwrap();
+                }
                 self.neo_audio.backend_mut().set_num_frames(nf).unwrap();
+                self.update_devices();
+            }
+            AppMessage::StartAudio => {
+                self.neo_audio
+                    .start_audio(MyProcessor::new(self.ui_sender.clone()))
+                    .unwrap();
+                self.audio_running = true;
+            }
+            AppMessage::StopAudio => {
+                self.neo_audio.stop_audio().unwrap();
+                self.audio_running = false;
             }
         };
-        self.update_devices();
     }
 
     fn view(&self) -> Element<AppMessage> {
@@ -176,7 +232,14 @@ impl NeoAudioIcedApp {
         )
         .width(250);
 
+        let audio_button = if self.audio_running {
+            button("Stop").on_press(AppMessage::StopAudio)
+        } else {
+            button("Start").on_press(AppMessage::StartAudio)
+        };
+
         let content = column![
+            button("Update Devices").on_press(AppMessage::UpdateDevices),
             "Api",
             api_combo_box,
             "Output Device",
@@ -191,6 +254,7 @@ impl NeoAudioIcedApp {
             sample_rates_combo_box,
             "Num Frames",
             num_frames_combo_box,
+            audio_button,
         ]
         .width(Length::Fill)
         .align_items(iced::Alignment::Center)
