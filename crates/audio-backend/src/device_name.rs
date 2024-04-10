@@ -13,3 +13,12 @@ impl From<Option<&String>> for DeviceName {
         }
     }
 }
+
+impl From<DeviceName> for Option<String> {
+    fn from(value: DeviceName) -> Self {
+        match value {
+            DeviceName::Name(name) => Some(name),
+            _ => None,
+        }
+    }
+}
