@@ -1,7 +1,9 @@
+use iced::advanced::renderer;
 use iced::{
     widget::{button, column, combo_box, container, scrollable},
     Element, Length,
 };
+use level_meter::level_meter;
 use neo_audio::{
     prelude::*,
     processors::player::{Receiver, Sender},
@@ -10,6 +12,8 @@ use rt_tools::{
     level_meter::{Level, LevelMeter},
     smooth_value::{Easing, Linear, SmoothValue},
 };
+
+mod level_meter;
 
 fn main() -> iced::Result {
     iced::run(
@@ -255,6 +259,7 @@ impl NeoAudioIcedApp {
             "Num Frames",
             num_frames_combo_box,
             audio_button,
+            // level_meter(0.0),
         ]
         .width(Length::Fill)
         .align_items(iced::Alignment::Center)
