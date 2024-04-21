@@ -2,6 +2,20 @@
 
 A backend-agnostic real-time audio engine that works cross platform.
 
+## Examples
+
+See the examples folder for all example applications.
+For a minimal example check `feedback` and `player`.
+For a full settings menu check `egui-example`.
+
+```bash
+cargo run --bin feedback
+# or
+cargo run --bin player
+# or
+cargo run --bin egui-example
+```
+
 ## Usage
 
 Import all necessary functions to use the engine
