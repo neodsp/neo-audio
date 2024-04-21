@@ -81,7 +81,7 @@ impl eframe::App for NeoAudioEguiExample {
                     for device in backend.available_output_devices() {
                         ui.selectable_value(
                             &mut self.config.output_device,
-                            AudioDevice::Name(device.clone()),
+                            Device::Name(device.clone()),
                             device,
                         );
                     }
@@ -104,7 +104,7 @@ impl eframe::App for NeoAudioEguiExample {
                     for device in backend.available_input_devices() {
                         ui.selectable_value(
                             &mut self.config.input_device,
-                            AudioDevice::Name(device.clone()),
+                            Device::Name(device.clone()),
                             device,
                         );
                     }

@@ -7,7 +7,7 @@ use rt_tools::interleaved_audio::{InterleavedAudio, InterleavedAudioMut};
 use rtaudio::{DeviceParams, Host};
 
 use crate::{
-    audio_backend_error::AudioBackendError, device_config::DeviceConfig, device_name::AudioDevice,
+    audio_backend_error::AudioBackendError, device_config::DeviceConfig, device_name::Device,
     AudioBackend, DEFAULT_NUM_FRAMES, DEFAULT_SAMPLE_RATE,
 };
 
@@ -71,8 +71,8 @@ impl AudioBackend for RtAudioBackend {
             error_receiver: None,
         };
         neo_audio.update_devices()?;
-        neo_audio.set_output_device(AudioDevice::Default)?;
-        neo_audio.set_input_device(AudioDevice::Default)?;
+        neo_audio.set_output_device(Device::Default)?;
+        neo_audio.set_input_device(Device::Default)?;
         Ok(neo_audio)
     }
 
@@ -88,7 +88,7 @@ impl AudioBackend for RtAudioBackend {
                     .iter()
                     .any(|device| device.id == input_device.id)
                 {
-                    self.set_output_device(AudioDevice::Default)?;
+                    self.set_output_device(Device::Default)?;
                 }
             }
 
@@ -99,7 +99,7 @@ impl AudioBackend for RtAudioBackend {
                     .iter()
                     .any(|device| device.id == output_device.id)
                 {
-                    self.set_input_device(AudioDevice::Default)?;
+                    self.set_input_device(Device::Default)?;
                 }
             }
 
@@ -176,12 +176,12 @@ impl AudioBackend for RtAudioBackend {
             .collect()
     }
 
-    fn set_output_device(&mut self, device: AudioDevice) -> Result<(), AudioBackendError> {
+    fn set_output_device(&mut self, device: Device) -> Result<(), AudioBackendError> {
         if let Some(host) = self.host.as_ref() {
             self.selected_output_device = match device {
-                AudioDevice::None => None,
-                AudioDevice::Default => host.default_output_device().ok(),
-                AudioDevice::Name(name) => Some(
+                Device::None => None,
+                Device::Default => host.default_output_device().ok(),
+                Device::Name(name) => Some(
                     self.output_devices
                         .iter()
                         .find(|device| device.name.contains(&name))
@@ -208,12 +208,12 @@ impl AudioBackend for RtAudioBackend {
             .collect()
     }
 
-    fn set_input_device(&mut self, device: AudioDevice) -> Result<(), AudioBackendError> {
+    fn set_input_device(&mut self, device: Device) -> Result<(), AudioBackendError> {
         if let Some(host) = self.host.as_ref() {
             self.selected_input_device = match device {
-                AudioDevice::None => None,
-                AudioDevice::Default => host.default_input_device().ok(),
-                AudioDevice::Name(name) => Some(
+                Device::None => None,
+                Device::Default => host.default_input_device().ok(),
+                Device::Name(name) => Some(
                     self.input_devices
                         .iter()
                         .find(|device| device.name.contains(&name))
@@ -242,9 +242,10 @@ impl AudioBackend for RtAudioBackend {
 
     fn set_num_output_channels(&mut self, ch: u32) -> Result<(), AudioBackendError> {
         if ch > self.available_num_output_channels() {
-            return Err(AudioBackendError::NumOutputChannels);
+            self.selected_num_output_channels = self.available_num_output_channels();
+        } else {
+            self.selected_num_output_channels = ch;
         }
-        self.selected_num_output_channels = ch;
         Ok(())
     }
 
@@ -261,9 +262,10 @@ impl AudioBackend for RtAudioBackend {
 
     fn set_num_input_channels(&mut self, ch: u32) -> Result<(), AudioBackendError> {
         if ch > self.available_num_input_channels() {
-            return Err(AudioBackendError::NumInputChannels);
+            self.selected_num_input_channels = self.available_num_input_channels();
+        } else {
+            self.selected_num_input_channels = ch;
         }
-        self.selected_num_input_channels = ch;
         Ok(())
     }
 
@@ -282,14 +284,18 @@ impl AudioBackend for RtAudioBackend {
     fn set_sample_rate(&mut self, sample_rate: u32) -> Result<(), AudioBackendError> {
         if self.sample_rates.contains(&sample_rate) {
             self.selected_sample_rate = sample_rate;
-            Ok(())
         } else {
-            Err(AudioBackendError::SampleRate)
+            self.selected_sample_rate = self.available_sample_rates()[0];
         }
+        Ok(())
     }
 
     fn set_num_frames(&mut self, num_frames: u32) -> Result<(), AudioBackendError> {
-        self.selected_num_frames = num_frames;
+        if [16, 32, 64, 128, 256, 512, 1024, 2048].contains(&num_frames) {
+            self.selected_num_frames = num_frames;
+        } else {
+            self.selected_num_frames = self.available_num_frames()[0];
+        }
         Ok(())
     }
 
@@ -305,8 +311,8 @@ impl AudioBackend for RtAudioBackend {
     fn set_config(&mut self, config: &DeviceConfig) -> Result<DeviceConfig, AudioBackendError> {
         if config.api != self.api() {
             self.set_api(&config.api)?;
-            self.set_output_device(AudioDevice::Default)?;
-            self.set_input_device(AudioDevice::Default)?;
+            self.set_output_device(Device::Default)?;
+            self.set_input_device(Device::Default)?;
             self.update_devices()?;
         } else {
             self.set_output_device(config.output_device.clone())?;

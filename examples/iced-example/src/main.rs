@@ -112,7 +112,7 @@ impl NeoAudioIcedApp {
                 }
                 self.neo_audio
                     .backend_mut()
-                    .set_output_device(DeviceName::Name(device))
+                    .set_output_device(Device::Name(device))
                     .unwrap();
                 self.update_devices();
             }
@@ -132,7 +132,7 @@ impl NeoAudioIcedApp {
                 }
                 self.neo_audio
                     .backend_mut()
-                    .set_input_device(DeviceName::Name(device))
+                    .set_input_device(Device::Name(device))
                     .unwrap();
                 self.update_devices();
             }

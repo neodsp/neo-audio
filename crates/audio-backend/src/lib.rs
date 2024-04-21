@@ -1,7 +1,7 @@
 use rt_tools::interleaved_audio::{InterleavedAudio, InterleavedAudioMut};
 
 use self::{
-    audio_backend_error::AudioBackendError, device_config::DeviceConfig, device_name::AudioDevice,
+    audio_backend_error::AudioBackendError, device_config::DeviceConfig, device_name::Device,
 };
 
 const DEFAULT_SAMPLE_RATE: u32 = 48000;
@@ -36,14 +36,14 @@ pub trait AudioBackend {
     /// Sets the output devie by name and updates the available sample rates.
     /// The name can be just a fragment of the name, first match is used.
     /// Retruns an error if the device is not available.
-    fn set_output_device(&mut self, device: AudioDevice) -> Result<(), AudioBackendError>;
+    fn set_output_device(&mut self, device: Device) -> Result<(), AudioBackendError>;
     fn output_device(&self) -> Option<String>;
 
     fn available_input_devices(&self) -> Vec<String>;
     /// Sets the input device by name and updates the available sample rates.
     /// The name can be just a fragment of the name, first match is used.
     /// Returns an error if the device is not available.
-    fn set_input_device(&mut self, device: AudioDevice) -> Result<(), AudioBackendError>;
+    fn set_input_device(&mut self, device: Device) -> Result<(), AudioBackendError>;
     fn input_device(&self) -> Option<String>;
 
     fn available_num_output_channels(&self) -> u32;

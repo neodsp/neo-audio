@@ -1,11 +1,11 @@
 #[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
-pub enum AudioDevice {
+pub enum Device {
     None,
     Default,
     Name(String),
 }
 
-impl From<Option<&String>> for AudioDevice {
+impl From<Option<&String>> for Device {
     fn from(value: Option<&String>) -> Self {
         match value {
             Some(name) => Self::Name(name.to_string()),
@@ -14,7 +14,7 @@ impl From<Option<&String>> for AudioDevice {
     }
 }
 
-impl From<Option<String>> for AudioDevice {
+impl From<Option<String>> for Device {
     fn from(value: Option<String>) -> Self {
         match value {
             Some(name) => Self::Name(name),
@@ -23,10 +23,10 @@ impl From<Option<String>> for AudioDevice {
     }
 }
 
-impl From<AudioDevice> for Option<String> {
-    fn from(value: AudioDevice) -> Self {
+impl From<Device> for Option<String> {
+    fn from(value: Device) -> Self {
         match value {
-            AudioDevice::Name(name) => Some(name),
+            Device::Name(name) => Some(name),
             _ => None,
         }
     }
