@@ -7,7 +7,7 @@ use rt_tools::interleaved_audio::{InterleavedAudio, InterleavedAudioMut};
 use rtaudio::{DeviceParams, Host};
 
 use crate::{
-    audio_backend_error::AudioBackendError, device_config::DeviceConfig, device_name::DeviceName,
+    audio_backend_error::AudioBackendError, device_config::DeviceConfig, device_name::AudioDevice,
     AudioBackend, DEFAULT_NUM_FRAMES, DEFAULT_SAMPLE_RATE,
 };
 
@@ -71,8 +71,8 @@ impl AudioBackend for RtAudioBackend {
             error_receiver: None,
         };
         neo_audio.update_devices()?;
-        neo_audio.set_output_device(DeviceName::Default)?;
-        neo_audio.set_input_device(DeviceName::Default)?;
+        neo_audio.set_output_device(AudioDevice::Default)?;
+        neo_audio.set_input_device(AudioDevice::Default)?;
         Ok(neo_audio)
     }
 
@@ -176,12 +176,12 @@ impl AudioBackend for RtAudioBackend {
             .collect()
     }
 
-    fn set_output_device(&mut self, device: DeviceName) -> Result<(), AudioBackendError> {
+    fn set_output_device(&mut self, device: AudioDevice) -> Result<(), AudioBackendError> {
         if let Some(host) = self.host.as_ref() {
             self.selected_output_device = match device {
-                DeviceName::None => None,
-                DeviceName::Default => host.default_output_device().ok(),
-                DeviceName::Name(name) => Some(
+                AudioDevice::None => None,
+                AudioDevice::Default => host.default_output_device().ok(),
+                AudioDevice::Name(name) => Some(
                     self.output_devices
                         .iter()
                         .find(|device| device.name.contains(&name))
@@ -208,12 +208,12 @@ impl AudioBackend for RtAudioBackend {
             .collect()
     }
 
-    fn set_input_device(&mut self, device: DeviceName) -> Result<(), AudioBackendError> {
+    fn set_input_device(&mut self, device: AudioDevice) -> Result<(), AudioBackendError> {
         if let Some(host) = self.host.as_ref() {
             self.selected_input_device = match device {
-                DeviceName::None => None,
-                DeviceName::Default => host.default_input_device().ok(),
-                DeviceName::Name(name) => Some(
+                AudioDevice::None => None,
+                AudioDevice::Default => host.default_input_device().ok(),
+                AudioDevice::Name(name) => Some(
                     self.input_devices
                         .iter()
                         .find(|device| device.name.contains(&name))

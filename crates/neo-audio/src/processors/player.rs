@@ -21,7 +21,7 @@ pub enum PlayerMessage {
     Gain(f32),
 }
 
-pub struct Player {
+pub struct PlayerProcessor {
     audio: Array2<f32>,
     play_head: usize,
     play: bool,
@@ -30,7 +30,7 @@ pub struct Player {
     gain: f32,
 }
 
-impl Default for Player {
+impl Default for PlayerProcessor {
     fn default() -> Self {
         Self {
             audio: Array2::zeros((0, 0)),
@@ -43,7 +43,7 @@ impl Default for Player {
     }
 }
 
-impl Player {
+impl PlayerProcessor {
     pub fn set_audio(&mut self, audio: impl Into<Array2<f32>>) {
         self.audio = audio.into();
     }
@@ -53,7 +53,7 @@ impl Player {
     }
 }
 
-impl AudioProcessor for Player {
+impl AudioProcessor for PlayerProcessor {
     type Message = PlayerMessage;
 
     fn prepare(&mut self, _config: audio_backend::device_config::DeviceConfig) {}

@@ -29,7 +29,7 @@ fn main() -> Result<(), NeoAudioError> {
     let (sender, receiver) = crossbeam_channel::bounded(1024);
 
     // start the audio engine with an implemented audio processor
-    let mut player = Player::default();
+    let mut player = PlayerProcessor::default();
     player.set_audio(stereo_sine);
     player.set_progress_sender(sender);
     neo_audio.start_audio(player)?;
@@ -39,13 +39,13 @@ fn main() -> Result<(), NeoAudioError> {
     neo_audio.send_message(PlayerMessage::Gain(0.5))?;
 
     // let it run until the whole file was played
-    'a: loop {
+    'outer: loop {
         for _ in 0..receiver.len() {
             match receiver.try_recv() {
                 Ok(progress) => {
                     println!("Progress {}%", (progress * 100.0) as usize);
                     if progress == 1.0 {
-                        break 'a;
+                        break 'outer;
                     }
                 }
                 _ => break,

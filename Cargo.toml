@@ -4,12 +4,11 @@ members = [
   "crates/rt-tools",
   "crates/neo-audio",
 
-  # "examples/*",
   "examples/feedback",
   "examples/player",
   "examples/egui-example",
   "examples/iced-example",
-  "examples/tauri-example/src-tauri",
+  # "examples/tauri-example/src-tauri",
 ]
 resolver = "2"
 

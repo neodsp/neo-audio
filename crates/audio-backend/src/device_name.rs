@@ -1,11 +1,11 @@
 #[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
-pub enum DeviceName {
+pub enum AudioDevice {
     None,
     Default,
     Name(String),
 }
 
-impl From<Option<&String>> for DeviceName {
+impl From<Option<&String>> for AudioDevice {
     fn from(value: Option<&String>) -> Self {
         match value {
             Some(name) => Self::Name(name.to_string()),
