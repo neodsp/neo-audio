@@ -45,7 +45,7 @@ struct NeoAudioIcedApp {
     selected_config: DeviceConfig,
     audio_running: bool,
     ui_sender: Sender<UiMessage>,
-    ui_receiver: Receiver<UiMessage>,
+    _ui_receiver: Receiver<UiMessage>,
 }
 
 impl NeoAudioIcedApp {
@@ -68,7 +68,7 @@ impl NeoAudioIcedApp {
             neo_audio,
             audio_running: false,
             ui_sender: sender,
-            ui_receiver: receiver,
+            _ui_receiver: receiver,
         }
     }
 
@@ -275,7 +275,7 @@ impl Default for NeoAudioIcedApp {
     }
 }
 
-enum MyMessage {
+pub enum MyMessage {
     Gain(f32),
 }
 

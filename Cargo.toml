@@ -17,7 +17,12 @@ edition = "2021"
 rust-version = "1.72"
 version = "0.1.0"
 license = "MIT OR Apache-2.0"
+repository = "https://github.com/neodsp/neo-audio"
+keywords = ["audio"]
+categories = ["multimedia::audio"]
 authors = ["Stephan Eckes <stephan@neodsp.com>"]
+homepage = "https://neodsp.com"
+readme = "README.md"
 
 [profile.dev.package."*"]
 # Optimize all dependencies in debug build
