@@ -31,7 +31,11 @@ impl AudioProcessor for FeedbackProcessor {
         }
     }
 
-    fn process(&mut self, mut output: AudioDataMut<'_, f32>, input: AudioData<'_, f32>) {
+    fn process(
+        &mut self,
+        mut output: InterleavedAudioMut<'_, f32>,
+        input: InterleavedAudio<'_, f32>,
+    ) {
         for (out_frame, in_frame) in output.frames_iter_mut().zip(input.frames_iter()) {
             out_frame
                 .iter_mut()

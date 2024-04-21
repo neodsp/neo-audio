@@ -88,7 +88,7 @@ impl AudioBackend for RtAudioBackend {
                     .iter()
                     .any(|device| device.id == input_device.id)
                 {
-                    self.set_output_device(DeviceName::Default)?;
+                    self.set_output_device(AudioDevice::Default)?;
                 }
             }
 
@@ -99,7 +99,7 @@ impl AudioBackend for RtAudioBackend {
                     .iter()
                     .any(|device| device.id == output_device.id)
                 {
-                    self.set_input_device(DeviceName::Default)?;
+                    self.set_input_device(AudioDevice::Default)?;
                 }
             }
 
@@ -305,8 +305,8 @@ impl AudioBackend for RtAudioBackend {
     fn set_config(&mut self, config: &DeviceConfig) -> Result<DeviceConfig, AudioBackendError> {
         if config.api != self.api() {
             self.set_api(&config.api)?;
-            self.set_output_device(DeviceName::Default)?;
-            self.set_input_device(DeviceName::Default)?;
+            self.set_output_device(AudioDevice::Default)?;
+            self.set_input_device(AudioDevice::Default)?;
             self.update_devices()?;
         } else {
             self.set_output_device(config.output_device.clone())?;

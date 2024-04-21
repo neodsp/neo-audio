@@ -14,7 +14,7 @@ impl From<Option<&String>> for AudioDevice {
     }
 }
 
-impl From<Option<String>> for DeviceName {
+impl From<Option<String>> for AudioDevice {
     fn from(value: Option<String>) -> Self {
         match value {
             Some(name) => Self::Name(name),
@@ -23,10 +23,10 @@ impl From<Option<String>> for DeviceName {
     }
 }
 
-impl From<DeviceName> for Option<String> {
-    fn from(value: DeviceName) -> Self {
+impl From<AudioDevice> for Option<String> {
+    fn from(value: AudioDevice) -> Self {
         match value {
-            DeviceName::Name(name) => Some(name),
+            AudioDevice::Name(name) => Some(name),
             _ => None,
         }
     }
