@@ -55,7 +55,7 @@ impl AudioProcessor for MyProcessor {
     }
 
     /// This is a simple feedback with gain
-    fn process(&mut self, mut output: AudioDataMut<'_, f32>, input: AudioData<'_, f32>) {
+    fn process(&mut self, mut output: InterleavedAudioMut<'_, f32>, input: InterleavedAudio<'_, f32>) {
         let min_ch = output.num_channels().min(input.num_channels());
         for ch in 0..min_ch {
             output
@@ -89,7 +89,7 @@ For a list of all available functions check the `AudioBackend` trait.
     let selected_output_device = neo_audio.backend().output_device();
 ```
 
-Start the audio stream with the selected settings. You have to call the constructot of the Processor here manually, to be more flexible.
+Start the audio stream with the selected settings. You have to call the constructor of the Processor here manually, to increase flexibility.
 
 ```Rust
 neo_audio.start_audio(MyProcessor::default())?;
