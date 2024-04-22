@@ -76,16 +76,16 @@ You can get and set the available devices and settings on the system via the `ba
 For a list of all available functions check the `AudioBackend` trait.
 
 ```Rust
-    let output_devices = neo_audio.backend().available_output_devices();
+let output_devices = neo_audio.backend().available_output_devices();
 
-    // don't start an output stream
-    neo_audio.backend().set_output_device(AudioDevice::None)?;
-    // use the system default device
-    neo_audio.backend().set_output_device(AudioDevice::Default)?;
-    // specify a device by name
-    neo_audio.backend().set_output_device(AudioDevice::Name("My Soundcard Name"))?;
+// don't start an output stream
+neo_audio.backend().set_output_device(AudioDevice::None)?;
+// use the system default device
+neo_audio.backend().set_output_device(AudioDevice::Default)?;
+// specify a device by name
+neo_audio.backend().set_output_device(AudioDevice::Name("My Soundcard Name"))?;
 
-    let selected_output_device = neo_audio.backend().output_device();
+let selected_output_device = neo_audio.backend().output_device();
 ```
 
 Start the audio stream with the selected settings. You have to call the constructor of the Processor here manually, to increase flexibility.
