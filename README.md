@@ -56,11 +56,10 @@ impl AudioProcessor for MyProcessor {
 
     /// This is a simple feedback with gain
     fn process(&mut self, mut output: InterleavedAudioMut<'_, f32>, input: InterleavedAudio<'_, f32>) {
-        let min_ch = output.num_channels().min(input.num_channels());
-        for ch in 0..min_ch {
-            output
-                .channel_iter_mut(ch)
-                .zip(input.channel_iter(ch))
+        for (out_frame, in_frame) in output.frames_iter_mut().zip(input.frames_iter()) {
+            out_frame
+                .iter_mut()
+                .zip(in_frame.iter())
                 .for_each(|(o, i)| *o = *i * self.gain);
         }
     }
