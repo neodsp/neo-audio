@@ -18,6 +18,13 @@ cargo run --bin egui-example
 
 ## Usage
 
+To include it in your project add this to your `Cargo.toml` file:
+
+```toml
+[dependencies]
+neo-audio = { git = "https://github.com/neodsp/neo-audio" }
+```
+
 Import all necessary functions to use the engine
 
 ```Rust
@@ -104,4 +111,14 @@ Stop the audio stream.
 
 ```Rust
 neo_audio.stop_audio()?;
+```
+
+## Prerequisites
+
+### Fedora Linux
+
+For RtAudio Backend install the following dependencies:
+
+```bash
+sudo dnf install cmake alsa-lib-devel pulseaudio-libs-devel
 ```
