@@ -115,10 +115,17 @@ neo_audio.stop_audio()?;
 
 ## Prerequisites
 
-### Fedora Linux
 
 For RtAudio Backend install the following dependencies:
 
+### Fedora Linux
+
 ```bash
 sudo dnf install cmake alsa-lib-devel pulseaudio-libs-devel
+```
+
+### Ubuntu Linux
+
+```bash
+sudo apt-get install cmake libasound2-dev libpulse-dev
 ```
