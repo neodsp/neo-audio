@@ -22,5 +22,7 @@ ndarray = { workspace = true, optional = true }
 serde = { workspace = true, features = ["serde_derive"] }
 
 [features]
-default = ["processors"]
+default = ["processors", "portaudio"]
+portaudio = ["audio-backend/portaudio"]
+rtaudio = ["audio-backend/rtaud"]
 processors = ["dep:ndarray"]

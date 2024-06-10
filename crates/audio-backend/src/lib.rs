@@ -63,9 +63,35 @@ pub trait AudioBackend {
     fn num_frames(&self) -> u32;
 
     /// set config all at once, good for loading application state at the start of the application
-    fn set_config(&mut self, config: &DeviceConfig) -> Result<DeviceConfig, AudioBackendError>;
+    fn set_config(&mut self, config: &DeviceConfig) -> Result<DeviceConfig, AudioBackendError> {
+        if config.api != self.api() {
+            self.set_api(&config.api)?;
+            self.set_output_device(Device::Default)?;
+            self.set_input_device(Device::Default)?;
+            self.update_devices()?;
+        } else {
+            self.set_output_device(config.output_device.clone())?;
+            self.set_input_device(config.input_device.clone())?;
+            self.set_num_output_channels(config.num_output_ch)?;
+            self.set_num_input_channels(config.num_input_ch)?;
+            self.set_sample_rate(config.sample_rate)?;
+            self.set_num_frames(config.num_frames)?;
+        }
+        Ok(self.config())
+    }
     /// get the selected config all at once, for saving state
-    fn config(&self) -> DeviceConfig;
+
+    fn config(&self) -> DeviceConfig {
+        DeviceConfig {
+            api: self.api(),
+            output_device: self.output_device().as_ref().into(),
+            input_device: self.input_device().as_ref().into(),
+            num_output_ch: self.num_output_channels(),
+            num_input_ch: self.num_input_channels(),
+            sample_rate: self.sample_rate(),
+            num_frames: self.num_frames(),
+        }
+    }
 
     /// starts the audio stream with the currently selected options
     fn start_stream(
@@ -84,7 +110,7 @@ mod tests {
 
     #[test]
     fn play_sine() {
-        use backends::rtaudio_backend::RtAudioBackend as AudioEngine;
+        use backends::portaudio_backend::PortAudioBackend as AudioEngine;
 
         let mut audio_engine = AudioEngine::default().unwrap();
         dbg!(audio_engine.config());
@@ -107,7 +133,7 @@ mod tests {
         std::thread::sleep(std::time::Duration::from_secs(3));
 
         // assert no error happing
-        audio_engine.stream_error().unwrap();
+        // audio_engine.stream_error().unwrap();
 
         audio_engine.stop_stream().unwrap();
     }

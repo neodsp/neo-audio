@@ -18,4 +18,10 @@ rt-tools = { workspace = true }
 serde = { workspace = true, features = ["serde_derive"] }
 
 # optional dependencies
-rtaudio = { workspace = true }
+rtaudio = { workspace = true, optional = true }
+weresocool_portaudio = { workspace = true, optional = true }
+
+[features]
+default = ["portaudio"]
+portaudio = ["weresocool_portaudio"]
+rtaud = ["rtaudio"]
