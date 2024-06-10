@@ -8,6 +8,8 @@ use crate::{audio_backend_error::AudioBackendError, device_name::Device, AudioBa
 
 const COMMON_SAMPLE_RATES: &[u32] = &[44100, 48000, 88200, 96000, 192000];
 const COMMON_FRAMES_PER_BUFFER: &[u32] = &[16, 32, 64, 128, 256, 512, 1024, 2048];
+const DEFAULT_SAMPLE_RATE: u32 = 48000;
+const DEFAULT_NUM_FRAMES: u32 = 512;
 
 enum StreamType {
     Duplex(Stream<NonBlocking, Duplex<f32, f32>>),
@@ -47,8 +49,8 @@ impl AudioBackend for PortAudioBackend {
             selected_input_device: None,
             selected_num_input_channels: 0,
             selected_num_output_channels: 0,
-            selected_sample_rate: 0.0,
-            selected_num_frames: 0,
+            selected_sample_rate: DEFAULT_SAMPLE_RATE as f64,
+            selected_num_frames: DEFAULT_NUM_FRAMES,
             stream: None,
             pa,
         };
@@ -306,7 +308,7 @@ impl AudioBackend for PortAudioBackend {
         if self.sample_rates.contains(&sample_rate) {
             self.selected_sample_rate = sample_rate as f64;
         } else {
-            self.selected_sample_rate = self.available_sample_rates()[0] as f64;
+            self.selected_sample_rate = DEFAULT_SAMPLE_RATE as f64;
         }
         Ok(())
     }

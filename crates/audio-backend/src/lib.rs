@@ -132,8 +132,8 @@ mod tests {
 
         std::thread::sleep(std::time::Duration::from_secs(3));
 
-        // assert no error happing
-        // audio_engine.stream_error().unwrap();
+        // // assert no error happing
+        // // audio_engine.stream_error().unwrap();
 
         audio_engine.stop_stream().unwrap();
     }
