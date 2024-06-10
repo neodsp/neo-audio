@@ -22,7 +22,7 @@ fn main() {
 }
 
 struct NeoAudioEguiExample {
-    neo_audio: NeoAudio<RtAudioBackend, MyProcessor>,
+    neo_audio: NeoAudio<PortAudioBackend, MyProcessor>,
     audio_running: bool,
     config: DeviceConfig,
     gain: f32,
@@ -37,7 +37,7 @@ impl NeoAudioEguiExample {
         // Restore app state using cc.storage (requires the "persistence" feature).
         // Use the cc.gl (a glow::Context) to create graphics shaders and buffers that you can use
         // for e.g. egui::PaintCallback.
-        let neo_audio = NeoAudio::<RtAudioBackend, MyProcessor>::new().unwrap();
+        let neo_audio = NeoAudio::<PortAudioBackend, MyProcessor>::new().unwrap();
         let backend = neo_audio.backend();
         let (ui_sender, ui_receiver) = bounded(1024);
         let mut input_level = SmoothValue::new(-60.0, Linear::ease_in_out);

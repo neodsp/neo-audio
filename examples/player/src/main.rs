@@ -12,7 +12,7 @@ fn generate_sine_wave(freq: f32, sample_rate: u32, duration: f32) -> Vec<f32> {
 
 fn main() -> Result<(), NeoAudioError> {
     // construct audio engine with selected backend and message type
-    let mut neo_audio = NeoAudio::<RtAudioBackend, _>::new()?;
+    let mut neo_audio = NeoAudio::<PortAudioBackend, _>::new()?;
 
     // generate stereo sine
     let sine_left = generate_sine_wave(440.0, neo_audio.backend().sample_rate(), 1.0);

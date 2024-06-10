@@ -38,7 +38,7 @@ enum AppMessage {
 }
 
 struct NeoAudioIcedApp {
-    neo_audio: NeoAudio<RtAudioBackend, MyProcessor>,
+    neo_audio: NeoAudio<PortAudioBackend, MyProcessor>,
     apis: combo_box::State<String>,
     output_devices: combo_box::State<String>,
     output_channels: combo_box::State<u32>,
@@ -55,7 +55,7 @@ struct NeoAudioIcedApp {
 impl NeoAudioIcedApp {
     fn new() -> Self {
         let (sender, receiver) = bounded(1024);
-        let neo_audio = NeoAudio::<RtAudioBackend, MyProcessor>::new().unwrap();
+        let neo_audio = NeoAudio::<PortAudioBackend, MyProcessor>::new().unwrap();
         Self {
             apis: combo_box::State::new(neo_audio.backend().available_apis()),
             output_devices: combo_box::State::new(neo_audio.backend().available_output_devices()),
