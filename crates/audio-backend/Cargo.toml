@@ -20,8 +20,10 @@ serde = { workspace = true, features = ["serde_derive"] }
 # optional dependencies
 rtaudio = { workspace = true, optional = true }
 weresocool_portaudio = { workspace = true, optional = true }
+cpal = { workspace = true, optional = true }
 
 [features]
-default = ["portaudio"]
+default = ["cpa"]
 portaudio = ["weresocool_portaudio"]
 rtaud = ["rtaudio"]
+cpa = ["cpal"]

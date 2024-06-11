@@ -4,17 +4,17 @@ use weresocool_portaudio::{
     NonBlocking, Output, OutputStreamSettings, PortAudio, Stream, StreamParameters,
 };
 
-use crate::{audio_backend_error::AudioBackendError, device_name::Device, AudioBackend};
+use crate::{
+    audio_backend_error::AudioBackendError, device_name::Device, AudioBackend, DEFAULT_NUM_FRAMES,
+    DEFAULT_SAMPLE_RATE,
+};
+
+use super::{COMMON_FRAMES_PER_BUFFER, COMMON_SAMPLE_RATES};
 
 // TODO: remove all unwraps
 // TODO: Test only output / only input streams
 // TODO: FInd a solution to check if sample rates and frame sizes are working upfront
 // TODO: Stream Errors?
-
-const COMMON_SAMPLE_RATES: &[u32] = &[44100, 48000, 88200, 96000, 192000];
-const COMMON_FRAMES_PER_BUFFER: &[u32] = &[16, 32, 64, 128, 256, 512, 1024, 2048];
-const DEFAULT_SAMPLE_RATE: u32 = 48000;
-const DEFAULT_NUM_FRAMES: u32 = 512;
 
 enum StreamType {
     Duplex(Stream<NonBlocking, Duplex<f32, f32>>),
