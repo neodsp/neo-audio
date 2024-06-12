@@ -110,7 +110,7 @@ mod tests {
 
     #[test]
     fn play_sine() {
-        use backends::portaudio_backend::PortAudioBackend as AudioEngine;
+        use backends::cpal_backend::CpalBackend as AudioEngine;
 
         let mut audio_engine = AudioEngine::default().unwrap();
         dbg!(audio_engine.config());

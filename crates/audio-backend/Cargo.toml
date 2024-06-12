@@ -21,9 +21,10 @@ serde = { workspace = true, features = ["serde_derive"] }
 rtaudio = { workspace = true, optional = true }
 weresocool_portaudio = { workspace = true, optional = true }
 cpal = { workspace = true, optional = true }
+ringbuf = { workspace = true, optional = true }
 
 [features]
 default = ["cpa"]
 portaudio = ["weresocool_portaudio"]
 rtaud = ["rtaudio"]
-cpa = ["cpal"]
+cpa = ["cpal", "ringbuf"]

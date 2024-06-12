@@ -1,12 +1,16 @@
 use cpal::{
-    traits::{DeviceTrait, HostTrait},
-    SampleFormat, SampleRate, SupportedStreamConfigRange,
+    traits::{DeviceTrait, HostTrait, StreamTrait},
+    SampleFormat, SampleRate, Stream, StreamConfig, SupportedStreamConfigRange,
 };
+use ringbuf::{traits::*, HeapRb};
+use rt_tools::interleaved_audio::{InterleavedAudio, InterleavedAudioMut};
 
 use crate::{
     audio_backend_error::AudioBackendError, backends::COMMON_SAMPLE_RATES, device_name::Device,
-    AudioBackend, DEFAULT_SAMPLE_RATE,
+    AudioBackend, DEFAULT_NUM_FRAMES, DEFAULT_SAMPLE_RATE,
 };
+
+use super::COMMON_FRAMES_PER_BUFFER;
 
 pub struct CpalBackend {
     apis: Vec<cpal::HostId>,
@@ -19,6 +23,9 @@ pub struct CpalBackend {
     selected_num_output_channels: u32,
     selected_num_input_channels: u32,
     selected_sample_rate: u32,
+    selected_num_frames: u32,
+    output_stream: Option<Stream>,
+    input_stream: Option<Stream>,
 }
 
 impl CpalBackend {
@@ -63,10 +70,27 @@ impl AudioBackend for CpalBackend {
         Self: Sized,
     {
         let apis = cpal::available_hosts().iter().cloned().collect::<Vec<_>>();
-        Ok(Self {
+        let mut neo_audio = Self {
             apis,
             selected_api: cpal::default_host(),
-        })
+            output_devices: Vec::new(),
+            input_devices: Vec::new(),
+            sample_rates: Vec::new(),
+            selected_output_device: None,
+            selected_input_device: None,
+            selected_num_output_channels: 0,
+            selected_num_input_channels: 0,
+            selected_sample_rate: DEFAULT_SAMPLE_RATE,
+            selected_num_frames: DEFAULT_NUM_FRAMES,
+            output_stream: None,
+            input_stream: None,
+        };
+
+        neo_audio.update_devices()?;
+        neo_audio.set_output_device(Device::Default)?;
+        neo_audio.set_input_device(Device::Default)?;
+
+        Ok(neo_audio)
     }
 
     fn update_devices(&mut self) -> Result<(), crate::audio_backend_error::AudioBackendError> {
@@ -106,7 +130,7 @@ impl AudioBackend for CpalBackend {
     }
 
     fn update_sample_rates(&mut self) {
-        self.sample_rates = COMMON_SAMPLE_RATES.to_vec();
+        self.sample_rates = self.available_sample_rates();
         // set default sample rate if sample_rate is not available
         if !self
             .sample_rates
@@ -242,57 +266,142 @@ impl AudioBackend for CpalBackend {
     }
 
     fn available_sample_rates(&self) -> Vec<u32> {
-        
-        match (self.input_config_f32(), self.output_config_f32()) {
-            (Some(inp), Some(out)) => {
-                
+        let (min, max) = match (self.input_config_f32(), self.output_config_f32()) {
+            (Some(inp), Some(out)) => (
+                inp.min_sample_rate().0.max(out.max_sample_rate().0),
+                inp.max_sample_rate().0.min(out.max_sample_rate().0),
+            ),
+            (None, Some(out)) => (out.min_sample_rate().0, out.max_sample_rate().0),
+            (Some(inp), None) => (inp.min_sample_rate().0, inp.max_sample_rate().0),
+            _ => {
+                assert!(false);
+                (0, 0)
             }
-            _ => {}
-        }
+        };
+        COMMON_SAMPLE_RATES
+            .iter()
+            .copied()
+            .filter(|&sr| sr >= min && sr <= max)
+            .collect()
     }
 
     fn set_sample_rate(
         &mut self,
         sample_rate: u32,
     ) -> Result<(), crate::audio_backend_error::AudioBackendError> {
-        todo!()
+        if self.available_sample_rates().contains(&sample_rate) {
+            self.selected_sample_rate = sample_rate;
+            Ok(())
+        } else {
+            Err(AudioBackendError::SampleRate)
+        }
     }
 
     fn sample_rate(&self) -> u32 {
-        todo!()
+        self.selected_sample_rate
     }
 
     fn available_num_frames(&self) -> Vec<u32> {
-        todo!()
+        COMMON_FRAMES_PER_BUFFER.to_vec()
     }
 
     fn set_num_frames(
         &mut self,
         num_frames: u32,
     ) -> Result<(), crate::audio_backend_error::AudioBackendError> {
-        todo!()
+        if self.available_num_frames().contains(&num_frames) {
+            self.selected_num_frames = num_frames;
+            Ok(())
+        } else {
+            Err(AudioBackendError::NumFrames)
+        }
     }
 
     fn num_frames(&self) -> u32 {
-        todo!()
+        self.selected_num_frames
     }
 
     fn start_stream(
         &mut self,
-        process_fn: impl FnMut(
+        mut process_fn: impl FnMut(
                 rt_tools::interleaved_audio::InterleavedAudioMut<'_, f32>,
                 rt_tools::interleaved_audio::InterleavedAudio<'_, f32>,
             ) + Send
             + 'static,
     ) -> Result<(), crate::audio_backend_error::AudioBackendError> {
+        match (
+            self.selected_output_device.as_ref(),
+            self.selected_input_device.as_ref(),
+        ) {
+            (None, None) => (),
+            (None, Some(input)) => (),
+            (Some(output), None) => (),
+            (Some(output), Some(input)) => {
+                let latency_samples = self.selected_num_frames as usize * 2;
+                let ring_buffer =
+                    HeapRb::<f32>::new(self.selected_num_frames as usize * 2 + latency_samples * 2);
+                let (mut producer, mut consumer) = ring_buffer.split();
+                for _ in 0..latency_samples {
+                    producer.try_push(0.0).unwrap();
+                }
+                let mut input_buffer = vec![
+                    0.0;
+                    self.selected_num_frames as usize
+                        * self.selected_num_input_channels as usize
+                ];
+
+                let config = cpal::StreamConfig {
+                    channels: self.selected_num_output_channels as u16,
+                    sample_rate: SampleRate(self.selected_sample_rate),
+                    buffer_size: cpal::BufferSize::Fixed(self.selected_num_frames),
+                };
+
+                let num_output_ch = self.selected_num_output_channels;
+                let num_input_ch = self.selected_num_input_channels;
+
+                let output_stream = output.build_output_stream(
+                    &config,
+                    move |data: &mut [f32], _info: &cpal::OutputCallbackInfo| {
+                        let _consumed = consumer.pop_slice(&mut input_buffer);
+                        process_fn(
+                            InterleavedAudioMut::from_slice(data, num_output_ch as usize),
+                            InterleavedAudio::from_slice(&input_buffer, num_input_ch as usize),
+                        );
+                    },
+                    move |err| eprintln!("Error in output stream: {:?}", err),
+                    None,
+                )?;
+
+                let input_stream = input.build_input_stream(
+                    &config,
+                    move |data: &[f32], _info: &cpal::InputCallbackInfo| {
+                        producer.push_slice(data);
+                    },
+                    move |err| eprintln!("Error in input stream: {:?}", err),
+                    None,
+                )?;
+
+                input_stream.play();
+                output_stream.play();
+
+                self.output_stream = Some(output_stream);
+                self.input_stream = Some(input_stream);
+            }
+        }
+
+        Ok(())
     }
 
     fn stop_stream(&mut self) -> Result<(), crate::audio_backend_error::AudioBackendError> {
-        todo!()
+        self.output_stream.as_mut().map(|s| s.pause());
+        self.input_stream.as_mut().map(|s| s.pause());
+        self.output_stream = None;
+        self.input_stream = None;
+        Ok(())
     }
 
     fn stream_error(&self) -> Result<(), crate::audio_backend_error::AudioBackendError> {
-        todo!()
+        Ok(())
     }
 }
 
