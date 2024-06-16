@@ -12,16 +12,16 @@ pub mod rtaudio_backend;
 
 use realtime_tools::interleaved_audio::{InterleavedAudio, InterleavedAudioMut};
 
-use crate::prelude::{Device, DeviceConfig, NeoAudioError};
+use crate::prelude::{Device, DeviceConfig, Error};
 
 pub trait AudioBackend {
-    fn default() -> Result<Self, NeoAudioError>
+    fn default() -> Result<Self, Error>
     where
         Self: Sized;
 
     /// updates the available devices for the currently set api and updates the
     /// sample rates as well
-    fn update_devices(&mut self) -> Result<(), NeoAudioError>;
+    fn update_devices(&mut self) -> Result<(), Error>;
     /// this will just update the available sample rates for the currently set devices, usually
     /// this is not necessary to be called by the user
     fn update_sample_rates(&mut self);
@@ -31,41 +31,41 @@ pub trait AudioBackend {
     fn available_apis(&self) -> Vec<String>;
     /// you can set the api by name, the name can also be just a part of the name, it will use the
     /// first match. returns an error if the api is not present.
-    fn set_api(&mut self, api_name: &str) -> Result<(), NeoAudioError>;
+    fn set_api(&mut self, api_name: &str) -> Result<(), Error>;
     fn api(&self) -> String;
 
     fn available_output_devices(&self) -> Vec<String>;
     /// Sets the output devie by name and updates the available sample rates.
     /// The name can be just a fragment of the name, first match is used.
     /// Retruns an error if the device is not available.
-    fn set_output_device(&mut self, device: Device) -> Result<(), NeoAudioError>;
+    fn set_output_device(&mut self, device: Device) -> Result<(), Error>;
     fn output_device(&self) -> Option<String>;
 
     fn available_input_devices(&self) -> Vec<String>;
     /// Sets the input device by name and updates the available sample rates.
     /// The name can be just a fragment of the name, first match is used.
     /// Returns an error if the device is not available.
-    fn set_input_device(&mut self, device: Device) -> Result<(), NeoAudioError>;
+    fn set_input_device(&mut self, device: Device) -> Result<(), Error>;
     fn input_device(&self) -> Option<String>;
 
     fn available_num_output_channels(&self) -> u16;
-    fn set_num_output_channels(&mut self, ch: u16) -> Result<(), NeoAudioError>;
+    fn set_num_output_channels(&mut self, ch: u16) -> Result<(), Error>;
     fn num_output_channels(&self) -> u16;
 
     fn available_num_input_channels(&self) -> u16;
-    fn set_num_input_channels(&mut self, ch: u16) -> Result<(), NeoAudioError>;
+    fn set_num_input_channels(&mut self, ch: u16) -> Result<(), Error>;
     fn num_input_channels(&self) -> u16;
 
     fn available_sample_rates(&self) -> Vec<u32>;
-    fn set_sample_rate(&mut self, sample_rate: u32) -> Result<(), NeoAudioError>;
+    fn set_sample_rate(&mut self, sample_rate: u32) -> Result<(), Error>;
     fn sample_rate(&self) -> u32;
 
     fn available_num_frames(&self) -> Vec<u32>;
-    fn set_num_frames(&mut self, num_frames: u32) -> Result<(), NeoAudioError>;
+    fn set_num_frames(&mut self, num_frames: u32) -> Result<(), Error>;
     fn num_frames(&self) -> u32;
 
     /// set config all at once, good for loading application state at the start of the application
-    fn set_config(&mut self, config: &DeviceConfig) -> Result<DeviceConfig, NeoAudioError> {
+    fn set_config(&mut self, config: &DeviceConfig) -> Result<DeviceConfig, Error> {
         if config.api != self.api() {
             self.set_api(&config.api)?;
             self.set_output_device(Device::Default)?;
@@ -99,11 +99,11 @@ pub trait AudioBackend {
     fn start_stream(
         &mut self,
         process_fn: impl FnMut(InterleavedAudioMut<'_, f32>, InterleavedAudio<'_, f32>) + Send + 'static,
-    ) -> Result<(), NeoAudioError>;
+    ) -> Result<(), Error>;
     /// call this to stop the audio stream
-    fn stop_stream(&mut self) -> Result<(), NeoAudioError>;
+    fn stop_stream(&mut self) -> Result<(), Error>;
     /// if an error happens during the audio stream it will be returned by this function
-    fn stream_error(&self) -> Result<(), NeoAudioError>;
+    fn stream_error(&self) -> Result<(), Error>;
 }
 
 #[cfg(test)]

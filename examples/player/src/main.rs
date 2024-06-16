@@ -10,7 +10,7 @@ fn generate_sine_wave(freq: f32, sample_rate: u32, duration: f32) -> Vec<f32> {
         .collect()
 }
 
-fn main() -> Result<(), NeoAudioError> {
+fn main() -> Result<(), Error> {
     // construct audio engine with selected backend and message type
     let mut neo_audio = NeoAudio::<PortAudioBackend>::new()?;
 

@@ -1,5 +1,5 @@
 #[derive(thiserror::Error, Debug, serde::Serialize, serde::Deserialize)]
-pub enum NeoAudioError {
+pub enum Error {
     #[error("Stream is running, please stop stream before changing devices.")]
     StreamRunning,
     #[error("Api not found")]
