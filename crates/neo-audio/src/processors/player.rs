@@ -112,4 +112,9 @@ impl AudioProcessor for PlayerProcessor {
             self.play = self.looped;
         }
     }
+
+    fn stopped(&mut self) {
+        self.play_head = 0;
+        self.play = false;
+    }
 }

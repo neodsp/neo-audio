@@ -2,13 +2,13 @@ use neo_audio::{prelude::*, processors::feedback::*};
 
 fn main() -> Result<(), NeoAudioError> {
     // construct audio engine with selected backend and message type
-    let mut neo_audio = NeoAudio::<PortAudioBackend, FeedbackProcessor>::new()?;
+    let mut neo_audio = NeoAudio::<PortAudioBackend>::new()?;
 
     // start the audio engine with an implemented audio processor
-    neo_audio.start_audio(FeedbackProcessor::default())?;
+    let sender = neo_audio.start_audio(FeedbackProcessor::default())?;
 
     // send thread-safe messages to the processor
-    neo_audio.send_message(FeedbackMessage::Gain(0.5))?;
+    sender.send(FeedbackMessage::Gain(0.5)).unwrap();
 
     // let it run for a bit
     std::thread::sleep(std::time::Duration::from_secs(5));

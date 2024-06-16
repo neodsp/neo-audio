@@ -17,4 +17,7 @@ pub trait AudioProcessor {
     /// here you can manipulate the audio streams, copy incoming to outgoing data.
     /// do not do anything that blocks the audio stream.
     fn process(&mut self, output: InterleavedAudioMut<'_, f32>, input: InterleavedAudio<'_, f32>);
+
+    // here you can reset stuff if it the audio is stopped
+    fn stopped(&mut self);
 }

@@ -1,9 +1,9 @@
-use iced::advanced::renderer;
+// use iced::advanced::renderer;
 use iced::{
     widget::{button, column, combo_box, container, scrollable},
     Element, Length,
 };
-use level_meter::level_meter;
+// use level_meter::level_meter;
 use neo_audio::{
     prelude::*,
     processors::player::{Receiver, Sender},
@@ -13,7 +13,7 @@ use rt_tools::{
     smooth_value::{Easing, Linear, SmoothValue},
 };
 
-mod level_meter;
+// mod level_meter;
 
 fn main() -> iced::Result {
     iced::run(
@@ -38,7 +38,8 @@ enum AppMessage {
 }
 
 struct NeoAudioIcedApp {
-    neo_audio: NeoAudio<PortAudioBackend, MyProcessor>,
+    neo_audio: NeoAudio<PortAudioBackend>,
+    sender: Option<Sender<MyMessage>>,
     apis: combo_box::State<String>,
     output_devices: combo_box::State<String>,
     output_channels: combo_box::State<u32>,
@@ -55,9 +56,10 @@ struct NeoAudioIcedApp {
 impl NeoAudioIcedApp {
     fn new() -> Self {
         let (sender, receiver) = bounded(1024);
-        let neo_audio = NeoAudio::<PortAudioBackend, MyProcessor>::new().unwrap();
+        let neo_audio = NeoAudio::<PortAudioBackend>::new().unwrap();
         Self {
             apis: combo_box::State::new(neo_audio.backend().available_apis()),
+            sender: None,
             output_devices: combo_box::State::new(neo_audio.backend().available_output_devices()),
             output_channels: combo_box::State::new(
                 (1..neo_audio.backend().available_num_output_channels() + 1).collect(),
@@ -165,9 +167,11 @@ impl NeoAudioIcedApp {
                 self.update_devices();
             }
             AppMessage::StartAudio => {
-                self.neo_audio
-                    .start_audio(MyProcessor::new(self.ui_sender.clone()))
-                    .unwrap();
+                self.sender = Some(
+                    self.neo_audio
+                        .start_audio(MyProcessor::new(self.ui_sender.clone()))
+                        .unwrap(),
+                );
                 self.audio_running = true;
             }
             AppMessage::StopAudio => {
@@ -285,6 +289,7 @@ pub enum MyMessage {
 }
 
 enum UiMessage {
+    #[allow(unused)]
     Level(Level),
 }
 
@@ -335,4 +340,6 @@ impl AudioProcessor for MyProcessor {
             }
         }
     }
+
+    fn stopped(&mut self) {}
 }

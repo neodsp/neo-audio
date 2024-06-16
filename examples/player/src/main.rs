@@ -12,7 +12,7 @@ fn generate_sine_wave(freq: f32, sample_rate: u32, duration: f32) -> Vec<f32> {
 
 fn main() -> Result<(), NeoAudioError> {
     // construct audio engine with selected backend and message type
-    let mut neo_audio = NeoAudio::<PortAudioBackend, _>::new()?;
+    let mut neo_audio = NeoAudio::<PortAudioBackend>::new()?;
 
     // generate stereo sine
     let sine_left = generate_sine_wave(440.0, neo_audio.backend().sample_rate(), 1.0);
@@ -32,11 +32,11 @@ fn main() -> Result<(), NeoAudioError> {
     let mut player = PlayerProcessor::default();
     player.set_audio(stereo_sine);
     player.set_progress_sender(sender);
-    neo_audio.start_audio(player)?;
+    let sender = neo_audio.start_audio(player)?;
 
     // send thread-safe messages to the processor
-    neo_audio.send_message(PlayerMessage::Play)?;
-    neo_audio.send_message(PlayerMessage::Gain(0.5))?;
+    sender.send(PlayerMessage::Play).unwrap();
+    sender.send(PlayerMessage::Gain(0.5)).unwrap();
 
     // let it run until the whole file was played
     'outer: loop {
