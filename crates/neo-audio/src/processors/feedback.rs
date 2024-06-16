@@ -43,6 +43,4 @@ impl AudioProcessor for FeedbackProcessor {
                 .for_each(|(o, i)| *o = *i * self.gain);
         }
     }
-
-    fn stopped(&mut self) {}
 }

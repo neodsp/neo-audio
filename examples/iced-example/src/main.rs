@@ -340,6 +340,4 @@ impl AudioProcessor for MyProcessor {
             }
         }
     }
-
-    fn stopped(&mut self) {}
 }
