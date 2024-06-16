@@ -49,7 +49,7 @@ impl AudioBackend for PortAudioBackend {
             output_devices: Vec::new(),
             input_devices: Vec::new(),
             sample_rates: Vec::new(),
-            selected_host: Some(pa.default_host_api().unwrap()),
+            selected_host: Some(pa.default_host_api()?),
             selected_output_device: None,
             selected_input_device: None,
             selected_num_input_channels: 0,
@@ -80,7 +80,7 @@ impl AudioBackend for PortAudioBackend {
         if let Some(host) = self.selected_host {
             self.output_devices.clear();
             self.input_devices.clear();
-            for device in self.pa.devices().unwrap().into_iter() {
+            for device in self.pa.devices()?.into_iter() {
                 if let Ok((index, info)) = device {
                     if info.host_api == host {
                         if info.max_output_channels > 0 {
@@ -134,7 +134,12 @@ impl AudioBackend for PortAudioBackend {
     fn available_apis(&self) -> Vec<String> {
         self.host_apis
             .iter()
-            .map(|api| self.pa.host_api_info(*api).unwrap().name.to_string())
+            .map(|api| {
+                self.pa
+                    .host_api_info(*api)
+                    .map(|info| info.name.to_string())
+                    .unwrap_or_default()
+            })
             .collect()
     }
 
@@ -148,7 +153,12 @@ impl AudioBackend for PortAudioBackend {
         let host = self
             .host_apis
             .iter()
-            .find(|&api| self.pa.host_api_info(*api).unwrap().name.contains(api_name))
+            .find(|&api| {
+                self.pa
+                    .host_api_info(*api)
+                    .map(|info| info.name.contains(api_name))
+                    .unwrap_or(false)
+            })
             .ok_or(AudioBackendError::ApiNotFound)?;
 
         self.selected_host = Some(*host);
@@ -160,7 +170,10 @@ impl AudioBackend for PortAudioBackend {
 
     fn api(&self) -> String {
         if let Some(host) = self.selected_host {
-            self.pa.host_api_info(host).unwrap().name.to_string()
+            self.pa
+                .host_api_info(host)
+                .map(|info| info.name.to_string())
+                .unwrap_or_default()
         } else {
             String::new()
         }
@@ -169,7 +182,12 @@ impl AudioBackend for PortAudioBackend {
     fn available_output_devices(&self) -> Vec<String> {
         self.output_devices
             .iter()
-            .map(|d| self.pa.device_info(*d).unwrap().name.to_string())
+            .map(|d| {
+                self.pa
+                    .device_info(*d)
+                    .map(|info| info.name.to_string())
+                    .unwrap_or_default()
+            })
             .collect()
     }
 
@@ -188,7 +206,12 @@ impl AudioBackend for PortAudioBackend {
                 *self
                     .output_devices
                     .iter()
-                    .find(|&device| self.pa.device_info(*device).unwrap().name.contains(&name))
+                    .find(|&device| {
+                        self.pa
+                            .device_info(*device)
+                            .map(|info| info.name.contains(&name))
+                            .unwrap_or(false)
+                    })
                     .ok_or(AudioBackendError::OutputDeviceNotFound)?,
             ),
         };
@@ -213,7 +236,12 @@ impl AudioBackend for PortAudioBackend {
     fn available_input_devices(&self) -> Vec<String> {
         self.input_devices
             .iter()
-            .map(|d| self.pa.device_info(*d).unwrap().name.to_string())
+            .map(|d| {
+                self.pa
+                    .device_info(*d)
+                    .map(|info| info.name.to_string())
+                    .unwrap_or_default()
+            })
             .collect()
     }
 
@@ -484,5 +512,11 @@ impl AudioBackend for PortAudioBackend {
 
     fn stream_error(&self) -> Result<(), crate::audio_backend_error::AudioBackendError> {
         Ok(())
+    }
+}
+
+impl From<weresocool_portaudio::Error> for AudioBackendError {
+    fn from(value: weresocool_portaudio::Error) -> Self {
+        Self::Backend(value.to_string())
     }
 }

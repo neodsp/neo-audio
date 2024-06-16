@@ -23,6 +23,6 @@ serde = { workspace = true, features = ["serde_derive"] }
 
 [features]
 default = ["processors", "portaudio"]
-portaudio = ["audio-backend/portaudio"]
-rtaudio = ["audio-backend/rtaud"]
+portaudio = ["audio-backend/portaudio-backend"]
+rtaudio = ["audio-backend/rtaudio-backend"]
 processors = ["dep:ndarray"]

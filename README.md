@@ -2,6 +2,8 @@
 
 A backend-agnostic real-time audio engine that works cross platform.
 
+This is still unstable and early work in progress.
+
 ## Examples
 
 See the examples folder for all example applications.
@@ -114,7 +116,6 @@ neo_audio.stop_audio()?;
 ```
 
 ## Prerequisites
-
 
 For RtAudio Backend install the following dependencies:
 

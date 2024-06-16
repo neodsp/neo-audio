@@ -24,7 +24,8 @@ cpal = { workspace = true, optional = true }
 ringbuf = { workspace = true, optional = true }
 
 [features]
-default = ["cpa"]
-portaudio = ["weresocool_portaudio"]
-rtaud = ["rtaudio"]
-cpa = ["cpal", "ringbuf"]
+# default = ["portaudio-backend"]
+default = ["rtaudio-backend"]
+portaudio-backend = ["weresocool_portaudio"]
+rtaudio-backend = ["rtaudio"]
+# cpal_backend = ["cpal", "ringbuf"]

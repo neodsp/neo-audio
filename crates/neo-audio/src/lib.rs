@@ -96,3 +96,23 @@ where
         Ok(())
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use std::{os::unix::thread, thread::sleep, time::Duration};
+
+    use audio_backend::backends::portaudio_backend::PortAudioBackend;
+
+    use crate::{processors::feedback::FeedbackProcessor, NeoAudio};
+
+    #[test]
+    fn feedback() {
+        let mut audio = NeoAudio::<PortAudioBackend, FeedbackProcessor>::new().unwrap();
+
+        audio.start_audio(FeedbackProcessor::default()).unwrap();
+
+        sleep(Duration::from_secs(5));
+
+        audio.stop_audio().unwrap();
+    }
+}

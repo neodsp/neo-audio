@@ -110,9 +110,39 @@ mod tests {
 
     #[test]
     fn play_sine() {
-        use backends::cpal_backend::CpalBackend as AudioEngine;
+        pub use backends::portaudio_backend::PortAudioBackend as Backend;
 
-        let mut audio_engine = AudioEngine::default().unwrap();
+        let mut audio_engine = Backend::default().unwrap();
+        dbg!(audio_engine.config());
+
+        let mut phasor = 0.0;
+        let phasor_inc = 440.0 / audio_engine.sample_rate() as f32;
+
+        audio_engine
+            .start_stream(move |mut output, _| {
+                for frame in output.frames_iter_mut() {
+                    // Generate a sine wave at 440 Hz at 50% volume.
+                    let val = (phasor * std::f32::consts::TAU).sin() * 0.5;
+                    phasor = (phasor + phasor_inc).fract();
+                    frame[0] = val;
+                    frame[1] = val;
+                }
+            })
+            .unwrap();
+
+        std::thread::sleep(std::time::Duration::from_secs(3));
+
+        // // assert no error happing
+        // // audio_engine.stream_error().unwrap();
+
+        audio_engine.stop_stream().unwrap();
+    }
+
+    #[test]
+    fn feedback() {
+        pub use backends::portaudio_backend::PortAudioBackend as Backend;
+
+        let mut audio_engine = Backend::default().unwrap();
         dbg!(audio_engine.config());
 
         let mut phasor = 0.0;

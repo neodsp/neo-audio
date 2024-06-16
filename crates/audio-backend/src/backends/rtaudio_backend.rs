@@ -7,8 +7,8 @@ use rt_tools::interleaved_audio::{InterleavedAudio, InterleavedAudioMut};
 use rtaudio::{DeviceParams, Host};
 
 use crate::{
-    audio_backend_error::AudioBackendError, device_config::DeviceConfig, device_name::Device,
-    AudioBackend, DEFAULT_NUM_FRAMES, DEFAULT_SAMPLE_RATE,
+    audio_backend_error::AudioBackendError, device_name::Device, AudioBackend, DEFAULT_NUM_FRAMES,
+    DEFAULT_SAMPLE_RATE,
 };
 
 pub struct RtAudioBackend {
