@@ -5,10 +5,11 @@ use iced::{
 };
 // use level_meter::level_meter;
 use neo_audio::{
+    backends::portaudio_backend::PortAudioBackend,
     prelude::*,
     processors::player::{Receiver, Sender},
 };
-use rt_tools::{
+use realtime_tools::{
     level_meter::{Level, LevelMeter},
     smooth_value::{Easing, Linear, SmoothValue},
 };
@@ -28,9 +29,9 @@ enum AppMessage {
     UpdateDevices,
     Api(String),
     OutputDevice(String),
-    NumOutputCh(u32),
+    NumOutputCh(u16),
     InputDevice(String),
-    NumInputCh(u32),
+    NumInputCh(u16),
     SampleRate(u32),
     NumFrames(u32),
     StartAudio,
@@ -42,9 +43,9 @@ struct NeoAudioIcedApp {
     sender: Option<Sender<MyMessage>>,
     apis: combo_box::State<String>,
     output_devices: combo_box::State<String>,
-    output_channels: combo_box::State<u32>,
+    output_channels: combo_box::State<u16>,
     input_devices: combo_box::State<String>,
-    input_channels: combo_box::State<u32>,
+    input_channels: combo_box::State<u16>,
     sample_rates: combo_box::State<u32>,
     num_frames: combo_box::State<u32>,
     selected_config: DeviceConfig,

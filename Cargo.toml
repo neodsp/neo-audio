@@ -1,8 +1,7 @@
 [workspace]
 members = [
-  "crates/audio-backend",
-  "crates/rt-tools",
   "crates/neo-audio",
+  "crates/realtime-tools",
 
   "examples/feedback",
   "examples/player",
@@ -32,8 +31,7 @@ opt-level = 2
 
 [workspace.dependencies]
 neo-audio = { path = "crates/neo-audio" }
-rt-tools = { path = "crates/rt-tools" }
-audio-backend = { path = "crates/audio-backend" }
+realtime-tools = { path = "crates/realtime-tools" }
 
 serde = "1.0.197"
 cpal = "0.15.3"

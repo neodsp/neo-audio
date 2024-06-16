@@ -12,4 +12,4 @@ iced = { git = "https://github.com/iced-rs/iced.git", rev = "72b975e", features 
   "advanced",
 ] }
 neo-audio = { workspace = true }
-rt-tools = { workspace = true }
+realtime-tools = { workspace = true }

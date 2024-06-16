@@ -56,7 +56,7 @@ impl PlayerProcessor {
 impl AudioProcessor for PlayerProcessor {
     type Message = PlayerMessage;
 
-    fn prepare(&mut self, _config: audio_backend::device_config::DeviceConfig) {}
+    fn prepare(&mut self, _config: crate::prelude::DeviceConfig) {}
 
     fn message_process(&mut self, message: Self::Message) {
         match message {
@@ -82,8 +82,8 @@ impl AudioProcessor for PlayerProcessor {
 
     fn process(
         &mut self,
-        mut output: rt_tools::interleaved_audio::InterleavedAudioMut<'_, f32>,
-        _input: rt_tools::interleaved_audio::InterleavedAudio<'_, f32>,
+        mut output: realtime_tools::interleaved_audio::InterleavedAudioMut<'_, f32>,
+        _input: realtime_tools::interleaved_audio::InterleavedAudio<'_, f32>,
     ) {
         let play_ch = output.num_channels().min(self.audio.nrows());
         for frame in output.frames_iter_mut() {

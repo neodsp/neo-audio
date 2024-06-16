@@ -475,19 +475,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "audio-backend"
-version = "0.1.0"
-dependencies = [
- "cpal",
- "ringbuf",
- "rt-tools",
- "rtaudio",
- "serde",
- "thiserror",
- "weresocool_portaudio",
-]
-
-[[package]]
 name = "autocfg"
 version = "1.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1282,7 +1269,7 @@ version = "0.1.0"
 dependencies = [
  "eframe",
  "neo-audio",
- "rt-tools",
+ "realtime-tools",
 ]
 
 [[package]]
@@ -2016,7 +2003,7 @@ version = "0.1.0"
 dependencies = [
  "iced",
  "neo-audio",
- "rt-tools",
+ "realtime-tools",
 ]
 
 [[package]]
@@ -2577,12 +2564,15 @@ dependencies = [
 name = "neo-audio"
 version = "0.1.0"
 dependencies = [
- "audio-backend",
+ "cpal",
  "crossbeam-channel",
  "ndarray",
- "rt-tools",
+ "realtime-tools",
+ "ringbuf",
+ "rtaudio",
  "serde",
  "thiserror",
+ "weresocool_portaudio",
 ]
 
 [[package]]
@@ -3228,6 +3218,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "realtime-tools"
+version = "0.1.0"
+dependencies = [
+ "easer",
+]
+
+[[package]]
 name = "redox_syscall"
 version = "0.2.16"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3314,13 +3311,6 @@ name = "roxmltree"
 version = "0.19.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3cd14fd5e3b777a7422cca79358c57a8f6e3a703d9ac187448d0daf220c2407f"
-
-[[package]]
-name = "rt-tools"
-version = "0.1.0"
-dependencies = [
- "easer",
-]
 
 [[package]]
 name = "rtaudio"

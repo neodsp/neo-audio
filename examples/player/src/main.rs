@@ -1,4 +1,4 @@
-use neo_audio::{prelude::*, processors::player::*};
+use neo_audio::{backends::portaudio_backend::PortAudioBackend, prelude::*, processors::player::*};
 
 fn generate_sine_wave(freq: f32, sample_rate: u32, duration: f32) -> Vec<f32> {
     let num_samples = (sample_rate as f32 * duration) as usize;

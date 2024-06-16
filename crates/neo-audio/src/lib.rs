@@ -1,9 +1,12 @@
-use audio_backend::AudioBackend;
 use audio_processor::AudioProcessor;
+use backends::AudioBackend;
 use crossbeam_channel::Sender;
 use error::NeoAudioError;
 
 pub mod audio_processor;
+pub mod backends;
+pub mod device_config;
+pub mod device_name;
 pub mod error;
 pub mod prelude;
 #[cfg(feature = "processors")]
@@ -71,7 +74,7 @@ where
 mod tests {
     use std::{thread::sleep, time::Duration};
 
-    use audio_backend::backends::portaudio_backend::PortAudioBackend;
+    use crate::backends::portaudio_backend::PortAudioBackend;
 
     use crate::{processors::feedback::FeedbackProcessor, NeoAudio};
 

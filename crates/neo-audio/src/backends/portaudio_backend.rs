@@ -1,12 +1,13 @@
-use rt_tools::interleaved_audio::{InterleavedAudio, InterleavedAudioMut};
+use realtime_tools::interleaved_audio::{InterleavedAudio, InterleavedAudioMut};
 use weresocool_portaudio::{
     DeviceIndex, Duplex, DuplexStreamCallbackArgs, DuplexStreamSettings, HostApiIndex, Input,
     NonBlocking, Output, OutputStreamSettings, PortAudio, Stream, StreamParameters,
 };
 
 use crate::{
-    audio_backend_error::AudioBackendError, device_name::Device, AudioBackend, DEFAULT_NUM_FRAMES,
-    DEFAULT_SAMPLE_RATE,
+    backends::{AudioBackend, DEFAULT_NUM_FRAMES, DEFAULT_SAMPLE_RATE},
+    device_name::Device,
+    prelude::NeoAudioError,
 };
 
 use super::{COMMON_FRAMES_PER_BUFFER, COMMON_SAMPLE_RATES};
@@ -39,11 +40,11 @@ pub struct PortAudioBackend {
 }
 
 impl AudioBackend for PortAudioBackend {
-    fn default() -> Result<Self, crate::audio_backend_error::AudioBackendError>
+    fn default() -> Result<Self, NeoAudioError>
     where
         Self: Sized,
     {
-        let pa = PortAudio::new().map_err(|e| AudioBackendError::Backend(e.to_string()))?;
+        let pa = PortAudio::new().map_err(|e| NeoAudioError::Backend(e.to_string()))?;
         let mut neo_audio = Self {
             host_apis: pa.host_apis().into_iter().map(|(index, _)| index).collect(),
             output_devices: Vec::new(),
@@ -67,10 +68,10 @@ impl AudioBackend for PortAudioBackend {
         Ok(neo_audio)
     }
 
-    fn update_devices(&mut self) -> Result<(), crate::audio_backend_error::AudioBackendError> {
+    fn update_devices(&mut self) -> Result<(), NeoAudioError> {
         // device update should only work when stream is stopped
         if self.stream.is_some() {
-            return Err(AudioBackendError::StreamRunning);
+            return Err(NeoAudioError::StreamRunning);
         }
 
         // ensure a host is selected
@@ -143,12 +144,9 @@ impl AudioBackend for PortAudioBackend {
             .collect()
     }
 
-    fn set_api(
-        &mut self,
-        api_name: &str,
-    ) -> Result<(), crate::audio_backend_error::AudioBackendError> {
+    fn set_api(&mut self, api_name: &str) -> Result<(), NeoAudioError> {
         if self.stream.is_some() {
-            return Err(AudioBackendError::StreamRunning);
+            return Err(NeoAudioError::StreamRunning);
         }
         let host = self
             .host_apis
@@ -159,7 +157,7 @@ impl AudioBackend for PortAudioBackend {
                     .map(|info| info.name.contains(api_name))
                     .unwrap_or(false)
             })
-            .ok_or(AudioBackendError::ApiNotFound)?;
+            .ok_or(NeoAudioError::ApiNotFound)?;
 
         self.selected_host = Some(*host);
 
@@ -194,9 +192,9 @@ impl AudioBackend for PortAudioBackend {
     fn set_output_device(
         &mut self,
         device: crate::device_name::Device,
-    ) -> Result<(), crate::audio_backend_error::AudioBackendError> {
+    ) -> Result<(), NeoAudioError> {
         if self.stream.is_some() {
-            return Err(AudioBackendError::StreamRunning);
+            return Err(NeoAudioError::StreamRunning);
         }
 
         self.selected_output_device = match device {
@@ -212,7 +210,7 @@ impl AudioBackend for PortAudioBackend {
                             .map(|info| info.name.contains(&name))
                             .unwrap_or(false)
                     })
-                    .ok_or(AudioBackendError::OutputDeviceNotFound)?,
+                    .ok_or(NeoAudioError::OutputDeviceNotFound)?,
             ),
         };
 
@@ -248,9 +246,9 @@ impl AudioBackend for PortAudioBackend {
     fn set_input_device(
         &mut self,
         device: crate::device_name::Device,
-    ) -> Result<(), crate::audio_backend_error::AudioBackendError> {
+    ) -> Result<(), NeoAudioError> {
         if self.stream.is_some() {
-            return Err(AudioBackendError::StreamRunning);
+            return Err(NeoAudioError::StreamRunning);
         }
 
         self.selected_input_device = match device {
@@ -261,7 +259,7 @@ impl AudioBackend for PortAudioBackend {
                     .input_devices
                     .iter()
                     .find(|&device| self.pa.device_info(*device).unwrap().name.contains(&name))
-                    .ok_or(AudioBackendError::OutputDeviceNotFound)?,
+                    .ok_or(NeoAudioError::OutputDeviceNotFound)?,
             ),
         };
 
@@ -282,62 +280,53 @@ impl AudioBackend for PortAudioBackend {
         None
     }
 
-    fn available_num_output_channels(&self) -> u32 {
+    fn available_num_output_channels(&self) -> u16 {
         self.selected_output_device
             .as_ref()
             .map(|d| {
                 self.pa
                     .device_info(*d)
-                    .map(|d| d.max_output_channels as u32)
+                    .map(|d| d.max_output_channels as u16)
                     .unwrap_or(0)
             })
             .unwrap_or(0)
     }
 
-    fn set_num_output_channels(
-        &mut self,
-        ch: u32,
-    ) -> Result<(), crate::audio_backend_error::AudioBackendError> {
+    fn set_num_output_channels(&mut self, ch: u16) -> Result<(), NeoAudioError> {
         self.selected_num_output_channels = ch.max(self.available_num_output_channels()) as i32;
         Ok(())
     }
 
-    fn num_output_channels(&self) -> u32 {
-        self.selected_num_output_channels as u32
+    fn num_output_channels(&self) -> u16 {
+        self.selected_num_output_channels as u16
     }
 
-    fn available_num_input_channels(&self) -> u32 {
+    fn available_num_input_channels(&self) -> u16 {
         self.selected_input_device
             .as_ref()
             .map(|d| {
                 self.pa
                     .device_info(*d)
-                    .map(|d| d.max_input_channels as u32)
+                    .map(|d| d.max_input_channels as u16)
                     .unwrap_or(0)
             })
             .unwrap_or(0)
     }
 
-    fn set_num_input_channels(
-        &mut self,
-        ch: u32,
-    ) -> Result<(), crate::audio_backend_error::AudioBackendError> {
+    fn set_num_input_channels(&mut self, ch: u16) -> Result<(), NeoAudioError> {
         self.selected_num_input_channels = ch.max(self.available_num_input_channels()) as i32;
         Ok(())
     }
 
-    fn num_input_channels(&self) -> u32 {
-        self.selected_num_input_channels as u32
+    fn num_input_channels(&self) -> u16 {
+        self.selected_num_input_channels as u16
     }
 
     fn available_sample_rates(&self) -> Vec<u32> {
         self.sample_rates.clone()
     }
 
-    fn set_sample_rate(
-        &mut self,
-        sample_rate: u32,
-    ) -> Result<(), crate::audio_backend_error::AudioBackendError> {
+    fn set_sample_rate(&mut self, sample_rate: u32) -> Result<(), NeoAudioError> {
         if self.sample_rates.contains(&sample_rate) {
             self.selected_sample_rate = sample_rate as f64;
         } else {
@@ -354,10 +343,7 @@ impl AudioBackend for PortAudioBackend {
         COMMON_FRAMES_PER_BUFFER.to_vec()
     }
 
-    fn set_num_frames(
-        &mut self,
-        num_frames: u32,
-    ) -> Result<(), crate::audio_backend_error::AudioBackendError> {
+    fn set_num_frames(&mut self, num_frames: u32) -> Result<(), NeoAudioError> {
         if COMMON_FRAMES_PER_BUFFER.contains(&num_frames) {
             self.selected_num_frames = num_frames;
         } else {
@@ -373,11 +359,11 @@ impl AudioBackend for PortAudioBackend {
     fn start_stream(
         &mut self,
         mut process_fn: impl FnMut(
-                rt_tools::interleaved_audio::InterleavedAudioMut<'_, f32>,
-                rt_tools::interleaved_audio::InterleavedAudio<'_, f32>,
+                realtime_tools::interleaved_audio::InterleavedAudioMut<'_, f32>,
+                realtime_tools::interleaved_audio::InterleavedAudio<'_, f32>,
             ) + Send
             + 'static,
-    ) -> Result<(), crate::audio_backend_error::AudioBackendError> {
+    ) -> Result<(), NeoAudioError> {
         let output_params = if let Some(output_device) = self.selected_output_device {
             let info = self.pa.device_info(output_device).unwrap();
             let latency = info.default_low_output_latency;
@@ -494,7 +480,7 @@ impl AudioBackend for PortAudioBackend {
         Ok(())
     }
 
-    fn stop_stream(&mut self) -> Result<(), crate::audio_backend_error::AudioBackendError> {
+    fn stop_stream(&mut self) -> Result<(), NeoAudioError> {
         self.stream.as_mut().map(|stream| match stream {
             StreamType::Duplex(stream) => {
                 stream.stop().unwrap();
@@ -510,12 +496,12 @@ impl AudioBackend for PortAudioBackend {
         Ok(())
     }
 
-    fn stream_error(&self) -> Result<(), crate::audio_backend_error::AudioBackendError> {
+    fn stream_error(&self) -> Result<(), NeoAudioError> {
         Ok(())
     }
 }
 
-impl From<weresocool_portaudio::Error> for AudioBackendError {
+impl From<weresocool_portaudio::Error> for NeoAudioError {
     fn from(value: weresocool_portaudio::Error) -> Self {
         Self::Backend(value.to_string())
     }

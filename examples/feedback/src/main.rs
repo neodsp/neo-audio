@@ -1,4 +1,6 @@
-use neo_audio::{prelude::*, processors::feedback::*};
+use neo_audio::{
+    backends::portaudio_backend::PortAudioBackend, prelude::*, processors::feedback::*,
+};
 
 fn main() -> Result<(), NeoAudioError> {
     // construct audio engine with selected backend and message type

@@ -2,8 +2,8 @@ use cpal::{
     traits::{DeviceTrait, HostTrait, StreamTrait},
     SampleFormat, SampleRate, Stream, StreamConfig, SupportedStreamConfigRange,
 };
+use realtime_tools::interleaved_audio::{InterleavedAudio, InterleavedAudioMut};
 use ringbuf::{traits::*, HeapRb};
-use rt_tools::interleaved_audio::{InterleavedAudio, InterleavedAudioMut};
 
 use crate::{
     audio_backend_error::AudioBackendError, backends::COMMON_SAMPLE_RATES, device_name::Device,
@@ -20,8 +20,8 @@ pub struct CpalBackend {
     selected_api: cpal::Host,
     selected_output_device: Option<cpal::Device>,
     selected_input_device: Option<cpal::Device>,
-    selected_num_output_channels: u32,
-    selected_num_input_channels: u32,
+    selected_num_output_channels: u16,
+    selected_num_input_channels: u16,
     selected_sample_rate: u32,
     selected_num_frames: u32,
     output_stream: Option<Stream>,
@@ -230,25 +230,25 @@ impl AudioBackend for CpalBackend {
             .map(|d| d.name().unwrap_or_default())
     }
 
-    fn available_num_output_channels(&self) -> u32 {
+    fn available_num_output_channels(&self) -> u16 {
         self.output_config_f32()
-            .map(|c| c.channels() as u32)
+            .map(|c| c.channels() as u16)
             .unwrap_or(0)
     }
 
     fn set_num_output_channels(
         &mut self,
-        ch: u32,
+        ch: u16,
     ) -> Result<(), crate::audio_backend_error::AudioBackendError> {
         self.selected_num_output_channels = ch.max(self.available_num_output_channels());
         Ok(())
     }
 
-    fn num_output_channels(&self) -> u32 {
+    fn num_output_channels(&self) -> u16 {
         self.selected_num_output_channels
     }
 
-    fn available_num_input_channels(&self) -> u32 {
+    fn available_num_input_channels(&self) -> u16 {
         self.input_config_f32()
             .map(|c| c.channels() as u32)
             .unwrap_or(0)
@@ -256,13 +256,13 @@ impl AudioBackend for CpalBackend {
 
     fn set_num_input_channels(
         &mut self,
-        ch: u32,
+        ch: u16,
     ) -> Result<(), crate::audio_backend_error::AudioBackendError> {
         self.selected_num_input_channels = ch.max(self.available_num_input_channels());
         Ok(())
     }
 
-    fn num_input_channels(&self) -> u32 {
+    fn num_input_channels(&self) -> u16 {
         self.selected_num_input_channels
     }
 
@@ -325,8 +325,8 @@ impl AudioBackend for CpalBackend {
     fn start_stream(
         &mut self,
         mut process_fn: impl FnMut(
-                rt_tools::interleaved_audio::InterleavedAudioMut<'_, f32>,
-                rt_tools::interleaved_audio::InterleavedAudio<'_, f32>,
+                realtime_tools::interleaved_audio::InterleavedAudioMut<'_, f32>,
+                realtime_tools::interleaved_audio::InterleavedAudio<'_, f32>,
             ) + Send
             + 'static,
     ) -> Result<(), crate::audio_backend_error::AudioBackendError> {

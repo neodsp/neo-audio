@@ -1,12 +1,12 @@
 pub use crate::audio_processor::AudioProcessor;
+#[cfg(feature = "portaudio")]
+pub use crate::backends::portaudio_backend::PortAudioBackend;
+#[cfg(feature = "rtaudio")]
+pub use crate::backends::rtaudio_backend::RtAudioBackend;
+pub use crate::backends::AudioBackend;
+pub use crate::device_config::DeviceConfig;
+pub use crate::device_name::Device;
 pub use crate::error::NeoAudioError;
 pub use crate::NeoAudio;
-#[cfg(feature = "portaudio")]
-pub use audio_backend::backends::portaudio_backend::PortAudioBackend;
-#[cfg(feature = "rtaudio")]
-pub use audio_backend::backends::rtaudio_backend::RtAudioBackend;
-pub use audio_backend::device_config::DeviceConfig;
-pub use audio_backend::device_name::Device;
-pub use audio_backend::AudioBackend;
 pub use crossbeam_channel::{bounded, Receiver, Sender};
-pub use rt_tools::interleaved_audio::{InterleavedAudio, InterleavedAudioMut};
+pub use realtime_tools::interleaved_audio::{InterleavedAudio, InterleavedAudioMut};

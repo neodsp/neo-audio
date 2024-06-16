@@ -1,25 +1,27 @@
-use rt_tools::interleaved_audio::{InterleavedAudio, InterleavedAudioMut};
+pub const COMMON_SAMPLE_RATES: &[u32] = &[44100, 48000, 88200, 96000, 192000];
+pub const COMMON_FRAMES_PER_BUFFER: &[u32] = &[16, 32, 64, 128, 256, 512, 1024, 2048];
+pub const DEFAULT_SAMPLE_RATE: u32 = 48000;
+pub const DEFAULT_NUM_FRAMES: u32 = 512;
 
-use self::{
-    audio_backend_error::AudioBackendError, device_config::DeviceConfig, device_name::Device,
-};
+#[cfg(feature = "cpal-backend")]
+pub mod cpal_backend;
+#[cfg(feature = "portaudio-backend")]
+pub mod portaudio_backend;
+#[cfg(feature = "rtaudio-backend")]
+pub mod rtaudio_backend;
 
-const DEFAULT_SAMPLE_RATE: u32 = 48000;
-const DEFAULT_NUM_FRAMES: u32 = 512;
+use realtime_tools::interleaved_audio::{InterleavedAudio, InterleavedAudioMut};
 
-pub mod audio_backend_error;
-pub mod backends;
-pub mod device_config;
-pub mod device_name;
+use crate::prelude::{Device, DeviceConfig, NeoAudioError};
 
 pub trait AudioBackend {
-    fn default() -> Result<Self, AudioBackendError>
+    fn default() -> Result<Self, NeoAudioError>
     where
         Self: Sized;
 
     /// updates the available devices for the currently set api and updates the
     /// sample rates as well
-    fn update_devices(&mut self) -> Result<(), AudioBackendError>;
+    fn update_devices(&mut self) -> Result<(), NeoAudioError>;
     /// this will just update the available sample rates for the currently set devices, usually
     /// this is not necessary to be called by the user
     fn update_sample_rates(&mut self);
@@ -29,41 +31,41 @@ pub trait AudioBackend {
     fn available_apis(&self) -> Vec<String>;
     /// you can set the api by name, the name can also be just a part of the name, it will use the
     /// first match. returns an error if the api is not present.
-    fn set_api(&mut self, api_name: &str) -> Result<(), AudioBackendError>;
+    fn set_api(&mut self, api_name: &str) -> Result<(), NeoAudioError>;
     fn api(&self) -> String;
 
     fn available_output_devices(&self) -> Vec<String>;
     /// Sets the output devie by name and updates the available sample rates.
     /// The name can be just a fragment of the name, first match is used.
     /// Retruns an error if the device is not available.
-    fn set_output_device(&mut self, device: Device) -> Result<(), AudioBackendError>;
+    fn set_output_device(&mut self, device: Device) -> Result<(), NeoAudioError>;
     fn output_device(&self) -> Option<String>;
 
     fn available_input_devices(&self) -> Vec<String>;
     /// Sets the input device by name and updates the available sample rates.
     /// The name can be just a fragment of the name, first match is used.
     /// Returns an error if the device is not available.
-    fn set_input_device(&mut self, device: Device) -> Result<(), AudioBackendError>;
+    fn set_input_device(&mut self, device: Device) -> Result<(), NeoAudioError>;
     fn input_device(&self) -> Option<String>;
 
-    fn available_num_output_channels(&self) -> u32;
-    fn set_num_output_channels(&mut self, ch: u32) -> Result<(), AudioBackendError>;
-    fn num_output_channels(&self) -> u32;
+    fn available_num_output_channels(&self) -> u16;
+    fn set_num_output_channels(&mut self, ch: u16) -> Result<(), NeoAudioError>;
+    fn num_output_channels(&self) -> u16;
 
-    fn available_num_input_channels(&self) -> u32;
-    fn set_num_input_channels(&mut self, ch: u32) -> Result<(), AudioBackendError>;
-    fn num_input_channels(&self) -> u32;
+    fn available_num_input_channels(&self) -> u16;
+    fn set_num_input_channels(&mut self, ch: u16) -> Result<(), NeoAudioError>;
+    fn num_input_channels(&self) -> u16;
 
     fn available_sample_rates(&self) -> Vec<u32>;
-    fn set_sample_rate(&mut self, sample_rate: u32) -> Result<(), AudioBackendError>;
+    fn set_sample_rate(&mut self, sample_rate: u32) -> Result<(), NeoAudioError>;
     fn sample_rate(&self) -> u32;
 
     fn available_num_frames(&self) -> Vec<u32>;
-    fn set_num_frames(&mut self, num_frames: u32) -> Result<(), AudioBackendError>;
+    fn set_num_frames(&mut self, num_frames: u32) -> Result<(), NeoAudioError>;
     fn num_frames(&self) -> u32;
 
     /// set config all at once, good for loading application state at the start of the application
-    fn set_config(&mut self, config: &DeviceConfig) -> Result<DeviceConfig, AudioBackendError> {
+    fn set_config(&mut self, config: &DeviceConfig) -> Result<DeviceConfig, NeoAudioError> {
         if config.api != self.api() {
             self.set_api(&config.api)?;
             self.set_output_device(Device::Default)?;
@@ -97,11 +99,11 @@ pub trait AudioBackend {
     fn start_stream(
         &mut self,
         process_fn: impl FnMut(InterleavedAudioMut<'_, f32>, InterleavedAudio<'_, f32>) + Send + 'static,
-    ) -> Result<(), AudioBackendError>;
+    ) -> Result<(), NeoAudioError>;
     /// call this to stop the audio stream
-    fn stop_stream(&mut self) -> Result<(), AudioBackendError>;
+    fn stop_stream(&mut self) -> Result<(), NeoAudioError>;
     /// if an error happens during the audio stream it will be returned by this function
-    fn stream_error(&self) -> Result<(), AudioBackendError>;
+    fn stream_error(&self) -> Result<(), NeoAudioError>;
 }
 
 #[cfg(test)]
@@ -110,7 +112,7 @@ mod tests {
 
     #[test]
     fn play_sine() {
-        pub use backends::portaudio_backend::PortAudioBackend as Backend;
+        pub use portaudio_backend::PortAudioBackend as Backend;
 
         let mut audio_engine = Backend::default().unwrap();
         dbg!(audio_engine.config());
@@ -140,7 +142,7 @@ mod tests {
 
     #[test]
     fn feedback() {
-        pub use backends::portaudio_backend::PortAudioBackend as Backend;
+        pub use portaudio_backend::PortAudioBackend as Backend;
 
         let mut audio_engine = Backend::default().unwrap();
         dbg!(audio_engine.config());

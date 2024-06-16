@@ -3,7 +3,7 @@ use std::{
     sync::mpsc::{self, Receiver},
 };
 
-use rt_tools::interleaved_audio::{InterleavedAudio, InterleavedAudioMut};
+use realtime_tools::interleaved_audio::{InterleavedAudio, InterleavedAudioMut};
 use rtaudio::{DeviceParams, Host};
 
 use crate::{
@@ -19,9 +19,9 @@ pub struct RtAudioBackend {
     sample_rates: Vec<u32>,
     selected_api: rtaudio::Api,
     selected_input_device: Option<rtaudio::DeviceInfo>,
-    selected_num_input_channels: u32,
+    selected_num_input_channels: u16,
     selected_output_device: Option<rtaudio::DeviceInfo>,
-    selected_num_output_channels: u32,
+    selected_num_output_channels: u16,
     selected_sample_rate: u32,
     selected_num_frames: u32,
     stream_handle: Option<rtaudio::StreamHandle>,
@@ -233,14 +233,14 @@ impl AudioBackend for RtAudioBackend {
         self.selected_input_device.as_ref().map(|d| d.name.clone())
     }
 
-    fn available_num_output_channels(&self) -> u32 {
+    fn available_num_output_channels(&self) -> u16 {
         self.selected_output_device
             .as_ref()
-            .map(|d| d.output_channels)
+            .map(|d| d.output_channels as u16)
             .unwrap_or(0)
     }
 
-    fn set_num_output_channels(&mut self, ch: u32) -> Result<(), AudioBackendError> {
+    fn set_num_output_channels(&mut self, ch: u16) -> Result<(), AudioBackendError> {
         if ch > self.available_num_output_channels() {
             self.selected_num_output_channels = self.available_num_output_channels();
         } else {
@@ -249,18 +249,18 @@ impl AudioBackend for RtAudioBackend {
         Ok(())
     }
 
-    fn num_output_channels(&self) -> u32 {
+    fn num_output_channels(&self) -> u16 {
         self.selected_num_output_channels
     }
 
-    fn available_num_input_channels(&self) -> u32 {
+    fn available_num_input_channels(&self) -> u16 {
         self.selected_input_device
             .as_ref()
-            .map(|d| d.input_channels)
+            .map(|d| d.input_channels as u16)
             .unwrap_or(0)
     }
 
-    fn set_num_input_channels(&mut self, ch: u32) -> Result<(), AudioBackendError> {
+    fn set_num_input_channels(&mut self, ch: u16) -> Result<(), AudioBackendError> {
         if ch > self.available_num_input_channels() {
             self.selected_num_input_channels = self.available_num_input_channels();
         } else {
@@ -269,7 +269,7 @@ impl AudioBackend for RtAudioBackend {
         Ok(())
     }
 
-    fn num_input_channels(&self) -> u32 {
+    fn num_input_channels(&self) -> u16 {
         self.selected_num_input_channels
     }
 
@@ -323,14 +323,14 @@ impl AudioBackend for RtAudioBackend {
                         .as_ref()
                         .map(|device| DeviceParams {
                             device_id: device.id,
-                            num_channels: self.selected_num_output_channels,
+                            num_channels: self.selected_num_output_channels as u32,
                             first_channel: 0,
                         }),
                     self.selected_input_device
                         .as_ref()
                         .map(|device| DeviceParams {
                             device_id: device.id,
-                            num_channels: self.selected_num_input_channels,
+                            num_channels: self.selected_num_input_channels as u32,
                             first_channel: 0,
                         }),
                     rtaudio::SampleFormat::Float32,
