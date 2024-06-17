@@ -1,3 +1,5 @@
+use crossbeam_channel::SendError;
+
 #[derive(thiserror::Error, Debug, serde::Serialize, serde::Deserialize)]
 pub enum Error {
     #[error("Stream is running, please stop stream before changing devices.")]
@@ -24,4 +26,12 @@ pub enum Error {
     StartStream(String),
     #[error("Failed to open stream with config")]
     OpenStream(String),
+    #[error("Failed to send message containing {0}")]
+    Send(String),
+}
+
+impl<T> From<SendError<T>> for Error {
+    fn from(s: SendError<T>) -> Self {
+        Error::Send(s.to_string())
+    }
 }

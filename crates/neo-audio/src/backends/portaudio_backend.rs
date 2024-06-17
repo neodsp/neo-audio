@@ -46,7 +46,7 @@ impl AudioBackend for PortAudioBackend {
     {
         let pa = PortAudio::new().map_err(|e| Error::Backend(e.to_string()))?;
         let mut neo_audio = Self {
-            host_apis: pa.host_apis().into_iter().map(|(index, _)| index).collect(),
+            host_apis: pa.host_apis().map(|(index, _)| index).collect(),
             output_devices: Vec::new(),
             input_devices: Vec::new(),
             sample_rates: Vec::new(),
@@ -81,7 +81,7 @@ impl AudioBackend for PortAudioBackend {
         if let Some(host) = self.selected_host {
             self.output_devices.clear();
             self.input_devices.clear();
-            for device in self.pa.devices()?.into_iter() {
+            for device in self.pa.devices()? {
                 if let Ok((index, info)) = device {
                     if info.host_api == host {
                         if info.max_output_channels > 0 {

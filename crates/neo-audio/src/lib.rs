@@ -76,9 +76,11 @@ mod tests {
 
     use crate::backends::portaudio_backend::PortAudioBackend;
 
+    use crate::prelude::*;
     use crate::{processors::feedback::FeedbackProcessor, NeoAudio};
 
     #[test]
+    #[ignore = "manual test"]
     fn feedback() {
         let mut audio = NeoAudio::<PortAudioBackend>::new().unwrap();
 
@@ -87,5 +89,73 @@ mod tests {
         sleep(Duration::from_secs(5));
 
         audio.stop_audio().unwrap();
+    }
+
+    #[test]
+    fn readme_code_test() -> Result<(), Error> {
+        enum MyMessage {
+            Gain(f32),
+        }
+
+        struct MyProcessor {
+            gain: f32,
+        }
+
+        impl Default for MyProcessor {
+            fn default() -> Self {
+                Self { gain: 1.0 }
+            }
+        }
+
+        impl AudioProcessor for MyProcessor {
+            type Message = MyMessage;
+
+            fn prepare(&mut self, config: DeviceConfig) {
+                println!("Prepare is called with {:?}", config);
+            }
+
+            fn message_process(&mut self, message: Self::Message) {
+                match message {
+                    MyMessage::Gain(gain) => self.gain = gain,
+                }
+            }
+
+            /// This is a simple feedback with gain
+            fn process(
+                &mut self,
+                mut output: InterleavedAudioMut<'_, f32>,
+                input: InterleavedAudio<'_, f32>,
+            ) {
+                for (out_frame, in_frame) in output.frames_iter_mut().zip(input.frames_iter()) {
+                    out_frame
+                        .iter_mut()
+                        .zip(in_frame.iter())
+                        .for_each(|(o, i)| *o = *i * self.gain);
+                }
+            }
+        }
+
+        let mut neo_audio = NeoAudio::<PortAudioBackend>::new()?;
+        
+        let _output_devices = neo_audio.backend().available_output_devices();
+
+        // don't start an output stream
+        neo_audio.backend_mut().set_output_device(Device::None)?;
+        // use the system default device
+        neo_audio.backend_mut().set_output_device(Device::Default)?;
+        // specify a device by name
+        neo_audio
+            .backend_mut()
+            .set_output_device(Device::Name("My Soundcard Name".into()))?;
+
+        let _selected_output_device = neo_audio.backend().output_device();
+
+        let sender = neo_audio.start_audio(MyProcessor::default())?;
+
+        sender.send(MyMessage::Gain(0.5))?;
+
+        neo_audio.stop_audio()?;
+
+        Ok(())
     }
 }

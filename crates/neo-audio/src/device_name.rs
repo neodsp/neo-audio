@@ -5,6 +5,12 @@ pub enum Device {
     Name(String),
 }
 
+impl From<&str> for Device {
+    fn from(value: &str) -> Self {
+        Self::Name(value.to_string())
+    }
+}
+
 impl From<Option<&String>> for Device {
     fn from(value: Option<&String>) -> Self {
         match value {
