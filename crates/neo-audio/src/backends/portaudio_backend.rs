@@ -12,9 +12,8 @@ use crate::{
 
 use super::{COMMON_FRAMES_PER_BUFFER, COMMON_SAMPLE_RATES};
 
-// TODO: remove all unwraps
 // TODO: Test only output / only input streams
-// TODO: FInd a solution to check if sample rates and frame sizes are working upfront
+// TODO: Find a solution to check if sample rates and frame sizes are working upfront
 // TODO: Stream Errors?
 
 enum StreamType {
@@ -76,7 +75,7 @@ impl AudioBackend for PortAudioBackend {
 
         // ensure a host is selected
         if self.selected_host.is_none() {
-            self.selected_host = Some(self.pa.default_host_api().unwrap());
+            self.selected_host = Some(self.pa.default_host_api()?);
         }
         if let Some(host) = self.selected_host {
             self.output_devices.clear();
@@ -252,7 +251,13 @@ impl AudioBackend for PortAudioBackend {
                 *self
                     .input_devices
                     .iter()
-                    .find(|&device| self.pa.device_info(*device).unwrap().name.contains(&name))
+                    .find(|&&device| {
+                        if let Ok(info) = self.pa.device_info(device) {
+                            info.name.contains(&name)
+                        } else {
+                            false
+                        }
+                    })
                     .ok_or(Error::OutputDeviceNotFound)?,
             ),
         };
@@ -359,7 +364,7 @@ impl AudioBackend for PortAudioBackend {
             + 'static,
     ) -> Result<(), Error> {
         let output_params = if let Some(output_device) = self.selected_output_device {
-            let info = self.pa.device_info(output_device).unwrap();
+            let info = self.pa.device_info(output_device)?;
             let latency = info.default_low_output_latency;
             Some(StreamParameters::<f32>::new(
                 output_device,
@@ -375,7 +380,7 @@ impl AudioBackend for PortAudioBackend {
             let latency = if let Some(output_params) = output_params {
                 output_params.suggested_latency
             } else {
-                let info = self.pa.device_info(input_device).unwrap();
+                let info = self.pa.device_info(input_device)?;
                 info.default_low_output_latency
             };
             Some(StreamParameters::<f32>::new(
@@ -410,11 +415,8 @@ impl AudioBackend for PortAudioBackend {
                     );
                     weresocool_portaudio::Continue
                 };
-                let mut stream = self
-                    .pa
-                    .open_non_blocking_stream(settings, callback)
-                    .unwrap();
-                stream.start().unwrap();
+                let mut stream = self.pa.open_non_blocking_stream(settings, callback)?;
+                stream.start()?;
                 self.stream = Some(StreamType::Duplex(stream));
             }
             (Some(output_params), None) => {
@@ -435,11 +437,8 @@ impl AudioBackend for PortAudioBackend {
                     );
                     weresocool_portaudio::Continue
                 };
-                let mut stream = self
-                    .pa
-                    .open_non_blocking_stream(settings, callback)
-                    .unwrap();
-                stream.start().unwrap();
+                let mut stream = self.pa.open_non_blocking_stream(settings, callback)?;
+                stream.start()?;
                 self.stream = Some(StreamType::Output(stream));
             }
             (None, Some(input_params)) => {
@@ -460,11 +459,8 @@ impl AudioBackend for PortAudioBackend {
                     );
                     weresocool_portaudio::Continue
                 };
-                let mut stream = self
-                    .pa
-                    .open_non_blocking_stream(settings, callback)
-                    .unwrap();
-                stream.start().unwrap();
+                let mut stream = self.pa.open_non_blocking_stream(settings, callback)?;
+                stream.start()?;
                 self.stream = Some(StreamType::Input(stream));
             }
             _ => {
@@ -475,17 +471,13 @@ impl AudioBackend for PortAudioBackend {
     }
 
     fn stop_stream(&mut self) -> Result<(), Error> {
-        self.stream.as_mut().map(|stream| match stream {
-            StreamType::Duplex(stream) => {
-                stream.stop().unwrap();
+        if let Some(stream) = self.stream.as_mut() {
+            match stream {
+                StreamType::Duplex(stream) => stream.stop()?,
+                StreamType::Output(stream) => stream.stop()?,
+                StreamType::Input(stream) => stream.stop()?,
             }
-            StreamType::Output(stream) => {
-                stream.stop().unwrap();
-            }
-            StreamType::Input(stream) => {
-                stream.stop().unwrap();
-            }
-        });
+        }
         self.stream = None;
         Ok(())
     }
