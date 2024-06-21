@@ -111,6 +111,7 @@ mod tests {
     use super::*;
 
     #[test]
+    #[ignore = "manual test"]
     fn play_sine() {
         pub use portaudio_backend::PortAudioBackend as Backend;
 
@@ -141,6 +142,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore = "manual test"]
     fn feedback() {
         pub use portaudio_backend::PortAudioBackend as Backend;
 
