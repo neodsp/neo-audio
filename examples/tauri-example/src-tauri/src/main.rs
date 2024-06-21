@@ -48,6 +48,7 @@ fn main() {
 }
 
 enum MyMessage {
+    #[allow(unused)]
     Gain(f32),
 }
 

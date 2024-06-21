@@ -80,15 +80,13 @@ impl AudioBackend for PortAudioBackend {
         if let Some(host) = self.selected_host {
             self.output_devices.clear();
             self.input_devices.clear();
-            for device in self.pa.devices()? {
-                if let Ok((index, info)) = device {
-                    if info.host_api == host {
-                        if info.max_output_channels > 0 {
-                            self.output_devices.push(index);
-                        }
-                        if info.max_input_channels > 0 {
-                            self.input_devices.push(index);
-                        }
+            for (index, info) in self.pa.devices()?.flatten() {
+                if info.host_api == host {
+                    if info.max_output_channels > 0 {
+                        self.output_devices.push(index);
+                    }
+                    if info.max_input_channels > 0 {
+                        self.input_devices.push(index);
                     }
                 }
             }

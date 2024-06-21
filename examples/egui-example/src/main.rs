@@ -177,9 +177,8 @@ impl eframe::App for NeoAudioEguiExample {
                 .add(egui::Slider::new(&mut self.gain, 0.0..=1.0).text("Gain"))
                 .changed()
             {
-                self.sender
-                    .as_ref()
-                    .map(|s| s.send(MyMessage::Gain(self.gain)).unwrap());
+                if let Some(s) = self.sender
+                    .as_ref() { s.send(MyMessage::Gain(self.gain)).unwrap() }
             }
 
             // update percentage
