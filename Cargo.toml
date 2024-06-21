@@ -3,18 +3,18 @@ members = [
   "crates/neo-audio",
   "crates/realtime-tools",
 
-  "examples/feedback",
-  "examples/player",
   "examples/egui-example",
+  "examples/feedback",
   "examples/iced-example",
-  # "examples/tauri-example/src-tauri",
+  "examples/player",
+  "examples/tauri-example/src-tauri",
 ]
 resolver = "2"
 
 [workspace.package]
 edition = "2021"
 rust-version = "1.72"
-version = "0.1.0"
+version = "0.2.0"
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/neodsp/neo-audio"
 keywords = ["audio"]
@@ -24,21 +24,18 @@ homepage = "https://neodsp.com"
 readme = "README.md"
 
 [profile.dev.package."*"]
-# Optimize all dependencies in debug build
-opt-level = 2
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+opt-level = 2 # Optimize all dependencies in debug build
 
 [workspace.dependencies]
 neo-audio = { path = "crates/neo-audio" }
 realtime-tools = { path = "crates/realtime-tools" }
 
-serde = "1.0.197"
 cpal = "0.15.3"
-thiserror = "1.0.58"
-rtaudio = "0.3.3"
 crossbeam-channel = "0.5.12"
-ndarray = "0.15.6"
 easer = "0.3.0"
-weresocool_portaudio = "1.0.47"
+ndarray = "0.15.6"
 ringbuf = "0.4.1"
+rtaudio = "0.3.3"
+serde = "1.0.197"
+thiserror = "1.0.58"
+weresocool_portaudio = "1.0.47"

@@ -292,7 +292,7 @@ impl AudioBackend for PortAudioBackend {
     }
 
     fn set_num_output_channels(&mut self, ch: u16) -> Result<(), Error> {
-        self.selected_num_output_channels = ch.max(self.available_num_output_channels()) as i32;
+        self.selected_num_output_channels = ch.min(self.available_num_output_channels()) as i32;
         Ok(())
     }
 
@@ -313,7 +313,7 @@ impl AudioBackend for PortAudioBackend {
     }
 
     fn set_num_input_channels(&mut self, ch: u16) -> Result<(), Error> {
-        self.selected_num_input_channels = ch.max(self.available_num_input_channels()) as i32;
+        self.selected_num_input_channels = ch.min(self.available_num_input_channels()) as i32;
         Ok(())
     }
 

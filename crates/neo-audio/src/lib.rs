@@ -92,6 +92,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore = "manual test"]
     fn readme_code_test() -> Result<(), Error> {
         enum MyMessage {
             Gain(f32),
@@ -136,7 +137,7 @@ mod tests {
         }
 
         let mut neo_audio = NeoAudio::<PortAudioBackend>::new()?;
-        
+
         let _output_devices = neo_audio.backend().available_output_devices();
 
         // don't start an output stream
