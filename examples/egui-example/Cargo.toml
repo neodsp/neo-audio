@@ -10,4 +10,4 @@ publish = false
 [dependencies]
 eframe = "0.27.2"
 neo-audio = { workspace = true }
-rt-tools = { workspace = true }
+realtime-tools = { workspace = true }

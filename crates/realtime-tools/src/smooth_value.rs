@@ -77,12 +77,17 @@ impl SmoothValue {
     }
 }
 
-#[test]
-fn test() {
-    let mut smooth_value = SmoothValue::new(0.0, Linear::ease_in_out);
-    smooth_value.prepare(100, 100);
-    smooth_value.set_target_value(1.0);
-    for i in 0..=10 {
-        assert_eq!(smooth_value.next_value(), i as f32 / 10.0);
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test() {
+        let mut smooth_value = SmoothValue::new(0.0, Linear::ease_in_out);
+        smooth_value.prepare(100, 100);
+        smooth_value.set_target_value(1.0);
+        for i in 0..=10 {
+            assert_eq!(smooth_value.next_value(), i as f32 / 10.0);
+        }
     }
 }

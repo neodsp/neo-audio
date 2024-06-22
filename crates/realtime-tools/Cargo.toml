@@ -1,5 +1,5 @@
 [package]
-name = "audio-backend"
+name = "realtime-tools"
 edition.workspace = true
 rust-version.workspace = true
 version.workspace = true
@@ -13,9 +13,4 @@ homepage.workspace = true
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-thiserror = { workspace = true }
-rt-tools = { workspace = true }
-serde = { workspace = true, features = ["serde_derive"] }
-
-# optional dependencies
-rtaudio = { workspace = true }
+easer = { workspace = true }

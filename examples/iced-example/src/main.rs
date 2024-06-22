@@ -1,19 +1,20 @@
-use iced::advanced::renderer;
+// use iced::advanced::renderer;
 use iced::{
     widget::{button, column, combo_box, container, scrollable},
     Element, Length,
 };
-use level_meter::level_meter;
+// use level_meter::level_meter;
 use neo_audio::{
+    backends::portaudio_backend::PortAudioBackend,
     prelude::*,
     processors::player::{Receiver, Sender},
 };
-use rt_tools::{
+use realtime_tools::{
     level_meter::{Level, LevelMeter},
     smooth_value::{Easing, Linear, SmoothValue},
 };
 
-mod level_meter;
+// mod level_meter;
 
 fn main() -> iced::Result {
     iced::run(
@@ -28,9 +29,9 @@ enum AppMessage {
     UpdateDevices,
     Api(String),
     OutputDevice(String),
-    NumOutputCh(u32),
+    NumOutputCh(u16),
     InputDevice(String),
-    NumInputCh(u32),
+    NumInputCh(u16),
     SampleRate(u32),
     NumFrames(u32),
     StartAudio,
@@ -38,12 +39,13 @@ enum AppMessage {
 }
 
 struct NeoAudioIcedApp {
-    neo_audio: NeoAudio<RtAudioBackend, MyProcessor>,
+    neo_audio: NeoAudio<PortAudioBackend>,
+    sender: Option<Sender<MyMessage>>,
     apis: combo_box::State<String>,
     output_devices: combo_box::State<String>,
-    output_channels: combo_box::State<u32>,
+    output_channels: combo_box::State<u16>,
     input_devices: combo_box::State<String>,
-    input_channels: combo_box::State<u32>,
+    input_channels: combo_box::State<u16>,
     sample_rates: combo_box::State<u32>,
     num_frames: combo_box::State<u32>,
     selected_config: DeviceConfig,
@@ -55,9 +57,10 @@ struct NeoAudioIcedApp {
 impl NeoAudioIcedApp {
     fn new() -> Self {
         let (sender, receiver) = bounded(1024);
-        let neo_audio = NeoAudio::<RtAudioBackend, MyProcessor>::new().unwrap();
+        let neo_audio = NeoAudio::<PortAudioBackend>::new().unwrap();
         Self {
             apis: combo_box::State::new(neo_audio.backend().available_apis()),
+            sender: None,
             output_devices: combo_box::State::new(neo_audio.backend().available_output_devices()),
             output_channels: combo_box::State::new(
                 (1..neo_audio.backend().available_num_output_channels() + 1).collect(),
@@ -165,9 +168,11 @@ impl NeoAudioIcedApp {
                 self.update_devices();
             }
             AppMessage::StartAudio => {
-                self.neo_audio
-                    .start_audio(MyProcessor::new(self.ui_sender.clone()))
-                    .unwrap();
+                self.sender = Some(
+                    self.neo_audio
+                        .start_audio(MyProcessor::new(self.ui_sender.clone()))
+                        .unwrap(),
+                );
                 self.audio_running = true;
             }
             AppMessage::StopAudio => {
@@ -285,6 +290,7 @@ pub enum MyMessage {
 }
 
 enum UiMessage {
+    #[allow(unused)]
     Level(Level),
 }
 

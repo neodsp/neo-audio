@@ -1,5 +1,5 @@
-pub use audio_backend::device_config::DeviceConfig;
-pub use rt_tools::interleaved_audio::{InterleavedAudio, InterleavedAudioMut};
+pub use crate::device_config::DeviceConfig;
+pub use realtime_tools::interleaved_audio::{InterleavedAudio, InterleavedAudioMut};
 
 pub trait AudioProcessor {
     type Message;

@@ -1,10 +1,11 @@
 use eframe::egui;
 use level_meter::level_meter;
 use neo_audio::{
+    backends::portaudio_backend::PortAudioBackend,
     prelude::*,
     processors::player::{bounded, Receiver, Sender},
 };
-use rt_tools::{
+use realtime_tools::{
     level_meter::{Level, LevelMeter},
     smooth_value::{Easing, Linear, SmoothValue},
 };
@@ -22,7 +23,8 @@ fn main() {
 }
 
 struct NeoAudioEguiExample {
-    neo_audio: NeoAudio<RtAudioBackend, MyProcessor>,
+    neo_audio: NeoAudio<PortAudioBackend>,
+    sender: Option<Sender<MyMessage>>,
     audio_running: bool,
     config: DeviceConfig,
     gain: f32,
@@ -37,13 +39,14 @@ impl NeoAudioEguiExample {
         // Restore app state using cc.storage (requires the "persistence" feature).
         // Use the cc.gl (a glow::Context) to create graphics shaders and buffers that you can use
         // for e.g. egui::PaintCallback.
-        let neo_audio = NeoAudio::<RtAudioBackend, MyProcessor>::new().unwrap();
+        let neo_audio = NeoAudio::<PortAudioBackend>::new().unwrap();
         let backend = neo_audio.backend();
         let (ui_sender, ui_receiver) = bounded(1024);
         let mut input_level = SmoothValue::new(-60.0, Linear::ease_in_out);
         input_level.prepare(60, 100);
         Self {
             audio_running: false,
+            sender: None,
             config: backend.config(),
             neo_audio,
             gain: 1.0,
@@ -161,9 +164,11 @@ impl eframe::App for NeoAudioEguiExample {
                 }
             } else {
                 if ui.button("Start").clicked() {
-                    self.neo_audio
-                        .start_audio(MyProcessor::new(self.ui_sender.clone()))
-                        .unwrap();
+                    self.sender = Some(
+                        self.neo_audio
+                            .start_audio(MyProcessor::new(self.ui_sender.clone()))
+                            .unwrap(),
+                    );
                     self.audio_running = true;
                 }
             }
@@ -172,9 +177,8 @@ impl eframe::App for NeoAudioEguiExample {
                 .add(egui::Slider::new(&mut self.gain, 0.0..=1.0).text("Gain"))
                 .changed()
             {
-                self.neo_audio
-                    .send_message(MyMessage::Gain(self.gain))
-                    .unwrap();
+                if let Some(s) = self.sender
+                    .as_ref() { s.send(MyMessage::Gain(self.gain)).unwrap() }
             }
 
             // update percentage

@@ -2,6 +2,8 @@
 
 A backend-agnostic real-time audio engine that works cross platform.
 
+This is still unstable and early work in progress.
+
 ## Examples
 
 See the examples folder for all example applications.
@@ -62,7 +64,11 @@ impl AudioProcessor for MyProcessor {
     }
 
     /// This is a simple feedback with gain
-    fn process(&mut self, mut output: InterleavedAudioMut<'_, f32>, input: InterleavedAudio<'_, f32>) {
+    fn process(
+        &mut self,
+        mut output: InterleavedAudioMut<'_, f32>,
+        input: InterleavedAudio<'_, f32>,
+    ) {
         for (out_frame, in_frame) in output.frames_iter_mut().zip(input.frames_iter()) {
             out_frame
                 .iter_mut()
@@ -73,10 +79,10 @@ impl AudioProcessor for MyProcessor {
 }
 ```
 
-Create an instance with a specific backend and processor. Here we will use the RtAudio backend.
+Create an instance with a specific backend. Here we will use the PortAudio backend.
 
 ```Rust
-let mut neo_audio = NeoAudio::<RtAudioBackend, MyProcessor>::new()?;
+let mut neo_audio = NeoAudio::<PortAudioBackend>::new()?;
 ```
 
 You can get and set the available devices and settings on the system via the `backend` function.
@@ -86,25 +92,28 @@ For a list of all available functions check the `AudioBackend` trait.
 let output_devices = neo_audio.backend().available_output_devices();
 
 // don't start an output stream
-neo_audio.backend().set_output_device(AudioDevice::None)?;
+neo_audio.backend_mut().set_output_device(Device::None)?;
 // use the system default device
-neo_audio.backend().set_output_device(AudioDevice::Default)?;
+neo_audio.backend_mut().set_output_device(Device::Default)?;
 // specify a device by name
-neo_audio.backend().set_output_device(AudioDevice::Name("My Soundcard Name"))?;
+neo_audio
+    .backend_mut()
+    .set_output_device(Device::Name("My Soundcard Name".into()))?;
 
-let selected_output_device = neo_audio.backend().output_device();
+let _selected_output_device = neo_audio.backend().output_device();
 ```
 
 Start the audio stream with the selected settings. You have to call the constructor of the Processor here manually, to increase flexibility.
+The function will return a sender that can be cloned as often as you like to send messages to the audio thread.
 
 ```Rust
-neo_audio.start_audio(MyProcessor::default())?;
+let sender = neo_audio.start_audio(MyProcessor::default())?;
 ```
 
 Send a message to the audio callback.
 
 ```Rust
-neo_audio.send_message(MyMessage::Gain(0.5))?;
+sender.send(MyMessage::Gain(0.5))?;
 ```
 
 Stop the audio stream.
@@ -114,7 +123,6 @@ neo_audio.stop_audio()?;
 ```
 
 ## Prerequisites
-
 
 For RtAudio Backend install the following dependencies:
 
