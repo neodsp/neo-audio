@@ -1,3 +1,4 @@
+#[derive(Debug, serde::Serialize, serde::Deserialize)]
 pub struct DeviceConfig {
     pub driver: String,
     pub input_device: String,

@@ -7,3 +7,4 @@ edition = "2021"
 weresocool_portaudio = "1.0.47"
 thiserror = "1.0.61"
 crossbeam-channel = "0.5.13"
+serde = { version = "1.0", features = ["derive"] }
