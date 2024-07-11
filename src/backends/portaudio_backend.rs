@@ -116,10 +116,12 @@ impl AudioBackend for PortaudioBackend {
                 AudioBlock {
                     data: in_buffer,
                     num_channels: (in_buffer.len() / frames) as u16,
+                    num_frames: frames as u16,
                 },
                 AudioBlockMut {
                     num_channels: (out_buffer.len() / frames) as u16,
                     data: out_buffer,
+                    num_frames: frames as u16,
                 },
             ) {
                 Ok(()) => weresocool_portaudio::Continue,
