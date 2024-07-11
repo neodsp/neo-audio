@@ -91,7 +91,7 @@ impl AudioBackend for PortaudioBackend {
 
     fn start_stream<F>(
         &mut self,
-        device_config: DeviceConfig,
+        device_config: &DeviceConfig,
         mut process_fn: F,
     ) -> Result<(), crate::error::NeoAudioError>
     where
@@ -140,7 +140,7 @@ impl AudioBackend for PortaudioBackend {
 
     fn stop_stream(&mut self) -> Result<(), NeoAudioError> {
         if let Some(mut stream) = self.stream.take() {
-            stream.stop()?;
+            stream.close()?;
         }
 
         Ok(())
@@ -201,19 +201,26 @@ mod tests {
     use super::*;
 
     #[test]
+    #[ignore = "manual test"]
     fn portaudio_backend() -> Result<(), Box<dyn Error>> {
         let mut backend = PortaudioBackend::new()?;
+
         dbg!(backend.available_devices()?);
-        backend.start_stream(
-            backend.default_config()?,
-            move |input, output| -> Result<(), Box<dyn Error>> {
+
+        let process_fn =
+            move |input: AudioBlock<'_>, output: AudioBlockMut<'_>| -> Result<(), Box<dyn Error>> {
                 output.data.copy_from_slice(input.data);
                 Ok(())
-            },
-        )?;
+            };
 
+        backend.start_stream(&backend.default_config()?, process_fn)?;
         std::thread::sleep(std::time::Duration::from_secs(3));
+        backend.stop_stream()?;
 
+        std::thread::sleep(std::time::Duration::from_secs(1));
+
+        backend.start_stream(&backend.default_config()?, process_fn)?;
+        std::thread::sleep(std::time::Duration::from_secs(3));
         backend.stop_stream()?;
 
         backend.stream_error()?;

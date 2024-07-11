@@ -21,13 +21,11 @@ pub trait AudioBackend {
     // Audio Stream
     fn start_stream<F>(
         &mut self,
-        device_config: DeviceConfig,
+        device_config: &DeviceConfig,
         process_fn: F,
     ) -> Result<(), NeoAudioError>
     where
         F: FnMut(AudioBlock, AudioBlockMut) -> Result<(), Box<dyn Error>> + 'static;
-
     fn stop_stream(&mut self) -> Result<(), NeoAudioError>;
-
     fn stream_error(&self) -> Result<(), NeoAudioError>;
 }
