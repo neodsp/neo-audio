@@ -1,41 +1,9 @@
-[workspace]
-members = [
-  "crates/neo-audio",
-  "crates/realtime-tools",
-
-  "examples/egui-example",
-  "examples/feedback",
-  "examples/iced-example",
-  "examples/player",
-  "examples/tauri-example/src-tauri",
-]
-resolver = "2"
-
-[workspace.package]
+[package]
+name = "neo-audio-simple"
+version = "0.1.0"
 edition = "2021"
-rust-version = "1.72"
-version = "0.2.0"
-license = "MIT OR Apache-2.0"
-repository = "https://github.com/neodsp/neo-audio"
-keywords = ["audio"]
-categories = ["multimedia::audio"]
-authors = ["Stephan Eckes <stephan@neodsp.com>"]
-homepage = "https://neodsp.com"
-readme = "README.md"
 
-[profile.dev.package."*"]
-opt-level = 2 # Optimize all dependencies in debug build
-
-[workspace.dependencies]
-neo-audio = { path = "crates/neo-audio" }
-realtime-tools = { path = "crates/realtime-tools" }
-
-cpal = "0.15.3"
-crossbeam-channel = "0.5.12"
-easer = "0.3.0"
-ndarray = "0.15.6"
-ringbuf = "0.4.1"
-rtaudio = "0.3.3"
-serde = "1.0.197"
-thiserror = "1.0.58"
+[dependencies]
 weresocool_portaudio = "1.0.47"
+thiserror = "1.0.61"
+crossbeam-channel = "0.5.13"
