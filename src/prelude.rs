@@ -1,0 +1,15 @@
+pub use crate::audio_block::AudioBlock;
+pub use crate::audio_block::AudioBlockMut;
+pub use crate::audio_processor::AudioProcessor;
+pub use crate::audio_processor::AudioProcessorError;
+pub use crate::available_devices::AvailableDevices;
+pub use crate::available_devices::Driver;
+pub use crate::available_devices::InputDevice;
+pub use crate::available_devices::OutputDevice;
+pub use crate::backends::portaudio_backend;
+pub use crate::backends::AudioBackend;
+pub use crate::device_config::DeviceConfig;
+pub use crate::error::NeoAudioError;
+pub use crate::NeoAudio;
+pub use crossbeam_channel::Receiver;
+pub use crossbeam_channel::Sender;

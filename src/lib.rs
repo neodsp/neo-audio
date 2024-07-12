@@ -9,6 +9,7 @@ pub mod available_devices;
 pub mod backends;
 pub mod device_config;
 pub mod error;
+pub mod prelude;
 
 pub const STANDARD_SAMPLE_RATES: &[f64] = &[44100.0, 48000.0, 88200.0, 96000.0, 192000.0];
 pub const STANDARD_NUM_FRAMES: &[u16] = &[16, 32, 64, 128, 256, 512, 1024, 2048, 4096];
