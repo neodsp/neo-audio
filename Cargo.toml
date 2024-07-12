@@ -1,5 +1,5 @@
 [package]
-name = "neo-audio-simple"
+name = "neo-audio"
 version = "0.1.0"
 edition = "2021"
 
