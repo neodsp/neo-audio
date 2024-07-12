@@ -38,7 +38,7 @@ impl AudioBackend for PortaudioBackend {
 
     fn available_devices(&self) -> Result<AvailableDevices, crate::error::NeoAudioError> {
         Ok(AvailableDevices {
-            apis: self
+            drivers: self
                 .pa
                 .host_apis()
                 .map(|(host_index, host_info)| {
