@@ -6,7 +6,7 @@ pub use crate::available_devices::AvailableDevices;
 pub use crate::available_devices::Driver;
 pub use crate::available_devices::InputDevice;
 pub use crate::available_devices::OutputDevice;
-pub use crate::backends::portaudio_backend;
+pub use crate::backends::portaudio_backend::PortaudioBackend;
 pub use crate::backends::AudioBackend;
 pub use crate::device_config::DeviceConfig;
 pub use crate::error::NeoAudioError;
