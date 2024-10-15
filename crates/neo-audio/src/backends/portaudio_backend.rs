@@ -1,13 +1,13 @@
-use realtime_tools::interleaved_audio::{InterleavedAudio, InterleavedAudioMut};
-use weresocool_portaudio::{
+use portaudio::{
     DeviceIndex, Duplex, DuplexStreamCallbackArgs, DuplexStreamSettings, HostApiIndex, Input,
     NonBlocking, Output, OutputStreamSettings, PortAudio, Stream, StreamParameters,
 };
+use realtime_tools::interleaved_audio::{InterleavedAudio, InterleavedAudioMut};
 
 use crate::{
     backends::{AudioBackend, DEFAULT_NUM_FRAMES, DEFAULT_SAMPLE_RATE},
     device_name::Device,
-    prelude::Error,
+    prelude::NeoAudioError,
 };
 
 use super::{COMMON_FRAMES_PER_BUFFER, COMMON_SAMPLE_RATES};
@@ -39,11 +39,11 @@ pub struct PortAudioBackend {
 }
 
 impl AudioBackend for PortAudioBackend {
-    fn default() -> Result<Self, Error>
+    fn default() -> Result<Self, NeoAudioError>
     where
         Self: Sized,
     {
-        let pa = PortAudio::new().map_err(|e| Error::Backend(e.to_string()))?;
+        let pa = PortAudio::new().map_err(|e| NeoAudioError::Backend(e.to_string()))?;
         let mut neo_audio = Self {
             host_apis: pa.host_apis().map(|(index, _)| index).collect(),
             output_devices: Vec::new(),
@@ -67,10 +67,10 @@ impl AudioBackend for PortAudioBackend {
         Ok(neo_audio)
     }
 
-    fn update_devices(&mut self) -> Result<(), Error> {
+    fn update_devices(&mut self) -> Result<(), NeoAudioError> {
         // device update should only work when stream is stopped
         if self.stream.is_some() {
-            return Err(Error::StreamRunning);
+            return Err(NeoAudioError::StreamRunning);
         }
 
         // ensure a host is selected
@@ -141,9 +141,9 @@ impl AudioBackend for PortAudioBackend {
             .collect()
     }
 
-    fn set_api(&mut self, api_name: &str) -> Result<(), Error> {
+    fn set_api(&mut self, api_name: &str) -> Result<(), NeoAudioError> {
         if self.stream.is_some() {
-            return Err(Error::StreamRunning);
+            return Err(NeoAudioError::StreamRunning);
         }
         let host = self
             .host_apis
@@ -154,7 +154,7 @@ impl AudioBackend for PortAudioBackend {
                     .map(|info| info.name.contains(api_name))
                     .unwrap_or(false)
             })
-            .ok_or(Error::ApiNotFound)?;
+            .ok_or(NeoAudioError::ApiNotFound)?;
 
         self.selected_host = Some(*host);
 
@@ -186,9 +186,12 @@ impl AudioBackend for PortAudioBackend {
             .collect()
     }
 
-    fn set_output_device(&mut self, device: crate::device_name::Device) -> Result<(), Error> {
+    fn set_output_device(
+        &mut self,
+        device: crate::device_name::Device,
+    ) -> Result<(), NeoAudioError> {
         if self.stream.is_some() {
-            return Err(Error::StreamRunning);
+            return Err(NeoAudioError::StreamRunning);
         }
 
         self.selected_output_device = match device {
@@ -204,7 +207,7 @@ impl AudioBackend for PortAudioBackend {
                             .map(|info| info.name.contains(&name))
                             .unwrap_or(false)
                     })
-                    .ok_or(Error::OutputDeviceNotFound)?,
+                    .ok_or(NeoAudioError::OutputDeviceNotFound)?,
             ),
         };
 
@@ -237,9 +240,12 @@ impl AudioBackend for PortAudioBackend {
             .collect()
     }
 
-    fn set_input_device(&mut self, device: crate::device_name::Device) -> Result<(), Error> {
+    fn set_input_device(
+        &mut self,
+        device: crate::device_name::Device,
+    ) -> Result<(), NeoAudioError> {
         if self.stream.is_some() {
-            return Err(Error::StreamRunning);
+            return Err(NeoAudioError::StreamRunning);
         }
 
         self.selected_input_device = match device {
@@ -256,7 +262,7 @@ impl AudioBackend for PortAudioBackend {
                             false
                         }
                     })
-                    .ok_or(Error::OutputDeviceNotFound)?,
+                    .ok_or(NeoAudioError::OutputDeviceNotFound)?,
             ),
         };
 
@@ -289,7 +295,7 @@ impl AudioBackend for PortAudioBackend {
             .unwrap_or(0)
     }
 
-    fn set_num_output_channels(&mut self, ch: u16) -> Result<(), Error> {
+    fn set_num_output_channels(&mut self, ch: u16) -> Result<(), NeoAudioError> {
         self.selected_num_output_channels = ch.min(self.available_num_output_channels()) as i32;
         Ok(())
     }
@@ -310,7 +316,7 @@ impl AudioBackend for PortAudioBackend {
             .unwrap_or(0)
     }
 
-    fn set_num_input_channels(&mut self, ch: u16) -> Result<(), Error> {
+    fn set_num_input_channels(&mut self, ch: u16) -> Result<(), NeoAudioError> {
         self.selected_num_input_channels = ch.min(self.available_num_input_channels()) as i32;
         Ok(())
     }
@@ -323,7 +329,7 @@ impl AudioBackend for PortAudioBackend {
         self.sample_rates.clone()
     }
 
-    fn set_sample_rate(&mut self, sample_rate: u32) -> Result<(), Error> {
+    fn set_sample_rate(&mut self, sample_rate: u32) -> Result<(), NeoAudioError> {
         if self.sample_rates.contains(&sample_rate) {
             self.selected_sample_rate = sample_rate as f64;
         } else {
@@ -340,7 +346,7 @@ impl AudioBackend for PortAudioBackend {
         COMMON_FRAMES_PER_BUFFER.to_vec()
     }
 
-    fn set_num_frames(&mut self, num_frames: u32) -> Result<(), Error> {
+    fn set_num_frames(&mut self, num_frames: u32) -> Result<(), NeoAudioError> {
         if COMMON_FRAMES_PER_BUFFER.contains(&num_frames) {
             self.selected_num_frames = num_frames;
         } else {
@@ -360,7 +366,7 @@ impl AudioBackend for PortAudioBackend {
                 realtime_tools::interleaved_audio::InterleavedAudio<'_, f32>,
             ) + Send
             + 'static,
-    ) -> Result<(), Error> {
+    ) -> Result<(), NeoAudioError> {
         let output_params = if let Some(output_device) = self.selected_output_device {
             let info = self.pa.device_info(output_device)?;
             let latency = info.default_low_output_latency;
@@ -411,7 +417,7 @@ impl AudioBackend for PortAudioBackend {
                         InterleavedAudioMut::from_slice(out_buffer, num_output_channels),
                         InterleavedAudio::from_slice(in_buffer, num_input_channels),
                     );
-                    weresocool_portaudio::Continue
+                    portaudio::Continue
                 };
                 let mut stream = self.pa.open_non_blocking_stream(settings, callback)?;
                 stream.start()?;
@@ -423,40 +429,34 @@ impl AudioBackend for PortAudioBackend {
                     self.selected_sample_rate,
                     self.selected_num_frames,
                 );
-                let callback = move |weresocool_portaudio::OutputStreamCallbackArgs::<f32> {
-                                         buffer,
-                                         frames,
-                                         ..
-                                     }| {
-                    let num_channels = buffer.len() / frames;
-                    process_fn(
-                        InterleavedAudioMut::from_slice(buffer, num_channels),
-                        InterleavedAudio::from_slice(&[], 0),
-                    );
-                    weresocool_portaudio::Continue
-                };
+                let callback =
+                    move |portaudio::OutputStreamCallbackArgs::<f32> { buffer, frames, .. }| {
+                        let num_channels = buffer.len() / frames;
+                        process_fn(
+                            InterleavedAudioMut::from_slice(buffer, num_channels),
+                            InterleavedAudio::from_slice(&[], 0),
+                        );
+                        portaudio::Continue
+                    };
                 let mut stream = self.pa.open_non_blocking_stream(settings, callback)?;
                 stream.start()?;
                 self.stream = Some(StreamType::Output(stream));
             }
             (None, Some(input_params)) => {
-                let settings = weresocool_portaudio::InputStreamSettings::new(
+                let settings = portaudio::InputStreamSettings::new(
                     input_params,
                     self.selected_sample_rate,
                     self.selected_num_frames,
                 );
-                let callback = move |weresocool_portaudio::InputStreamCallbackArgs::<f32> {
-                                         buffer,
-                                         frames,
-                                         ..
-                                     }| {
-                    let num_channels = buffer.len() / frames;
-                    process_fn(
-                        InterleavedAudioMut::from_slice(&mut [], 0),
-                        InterleavedAudio::from_slice(buffer, num_channels),
-                    );
-                    weresocool_portaudio::Continue
-                };
+                let callback =
+                    move |portaudio::InputStreamCallbackArgs::<f32> { buffer, frames, .. }| {
+                        let num_channels = buffer.len() / frames;
+                        process_fn(
+                            InterleavedAudioMut::from_slice(&mut [], 0),
+                            InterleavedAudio::from_slice(buffer, num_channels),
+                        );
+                        portaudio::Continue
+                    };
                 let mut stream = self.pa.open_non_blocking_stream(settings, callback)?;
                 stream.start()?;
                 self.stream = Some(StreamType::Input(stream));
@@ -468,7 +468,7 @@ impl AudioBackend for PortAudioBackend {
         Ok(())
     }
 
-    fn stop_stream(&mut self) -> Result<(), Error> {
+    fn stop_stream(&mut self) -> Result<(), NeoAudioError> {
         if let Some(stream) = self.stream.as_mut() {
             match stream {
                 StreamType::Duplex(stream) => stream.stop()?,
@@ -480,13 +480,13 @@ impl AudioBackend for PortAudioBackend {
         Ok(())
     }
 
-    fn stream_error(&self) -> Result<(), Error> {
+    fn stream_error(&self) -> Result<(), NeoAudioError> {
         Ok(())
     }
 }
 
-impl From<weresocool_portaudio::Error> for Error {
-    fn from(value: weresocool_portaudio::Error) -> Self {
+impl From<portaudio::Error> for NeoAudioError {
+    fn from(value: portaudio::Error) -> Self {
         Self::Backend(value.to_string())
     }
 }

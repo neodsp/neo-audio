@@ -3690,6 +3690,7 @@ dependencies = [
  "crossbeam-channel",
  "js-sys",
  "ndarray",
+ "portaudio",
  "realtime-tools",
  "ringbuf",
  "rtaudio",
@@ -3697,7 +3698,6 @@ dependencies = [
  "thiserror",
  "wasm-bindgen",
  "web-sys",
- "weresocool_portaudio",
 ]
 
 [[package]]
@@ -4462,6 +4462,27 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "fcdd8420072e66d54a407b3316991fe946ce3ab1083a7f575b2463866624704d"
 dependencies = [
  "portable-atomic",
+]
+
+[[package]]
+name = "portaudio"
+version = "0.8.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2d64242ed9c0236ba1470729856c0e69363ecd2339940230161383f1238804f6"
+dependencies = [
+ "bitflags 2.5.0",
+ "libc",
+ "num",
+ "portaudio-sys2",
+]
+
+[[package]]
+name = "portaudio-sys2"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "86a36ee35d719327fee8827321bd41f3ee7a2cc2335aa28f9168ffed3e82c6b8"
+dependencies = [
+ "pkg-config",
 ]
 
 [[package]]
@@ -6778,27 +6799,6 @@ dependencies = [
  "thiserror",
  "windows 0.54.0",
  "windows-core 0.54.0",
-]
-
-[[package]]
-name = "weresocool_portaudio"
-version = "1.0.47"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7f841f5770cf6ca0e76eb33589ec63be4dd9acc95de4c32e17581014828107cc"
-dependencies = [
- "bitflags 1.3.2",
- "libc",
- "num",
- "weresocool_portaudio_sys",
-]
-
-[[package]]
-name = "weresocool_portaudio_sys"
-version = "1.0.47"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "78b78b601a2020630eaad8707d2794400bde1d3d075f23429f2434912598d51c"
-dependencies = [
- "cc",
 ]
 
 [[package]]

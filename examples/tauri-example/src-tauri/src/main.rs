@@ -26,7 +26,7 @@ fn get_apis(state: tauri::State<Mutex<State>>) -> Vec<String> {
 }
 
 #[tauri::command]
-fn set_api(state: tauri::State<Mutex<State>>, api_name: &str) -> Result<(), Error> {
+fn set_api(state: tauri::State<Mutex<State>>, api_name: &str) -> Result<(), NeoAudioError> {
     state
         .lock()
         .expect("Mutex Posion Error")
