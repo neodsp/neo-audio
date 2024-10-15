@@ -31,11 +31,11 @@ neo-audio = { path = "crates/neo-audio" }
 realtime-tools = { path = "crates/realtime-tools" }
 
 cpal = "0.15.3"
-crossbeam-channel = "0.5.12"
+crossbeam-channel = "0.5.13"
 easer = "0.3.0"
-ndarray = "0.15.6"
-ringbuf = "0.4.1"
+ndarray = "0.16.1"
+ringbuf = "0.4.7"
 rtaudio = "0.3.3"
-serde = "1.0.197"
-thiserror = "1.0.58"
+serde = "1.0.210"
+thiserror = "1.0.64"
 weresocool_portaudio = "1.0.47"

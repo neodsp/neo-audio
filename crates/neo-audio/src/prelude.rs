@@ -1,7 +1,7 @@
 pub use crate::audio_processor::AudioProcessor;
-#[cfg(feature = "portaudio")]
+#[cfg(feature = "portaudio-backend")]
 pub use crate::backends::portaudio_backend::PortAudioBackend;
-#[cfg(feature = "rtaudio")]
+#[cfg(feature = "rtaudio-backend")]
 pub use crate::backends::rtaudio_backend::RtAudioBackend;
 pub use crate::backends::AudioBackend;
 pub use crate::device_config::DeviceConfig;

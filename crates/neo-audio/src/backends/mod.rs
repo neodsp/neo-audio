@@ -9,6 +9,8 @@ pub mod cpal_backend;
 pub mod portaudio_backend;
 #[cfg(feature = "rtaudio-backend")]
 pub mod rtaudio_backend;
+#[cfg(feature = "webaudio")]
+pub mod webaudio_backend;
 
 use realtime_tools::interleaved_audio::{InterleavedAudio, InterleavedAudioMut};
 
