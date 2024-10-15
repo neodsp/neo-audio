@@ -7,7 +7,7 @@ fn main() -> Result<(), NeoAudioError> {
     let mut neo_audio = NeoAudio::<PortAudioBackend>::new()?;
 
     // start the audio engine with an implemented audio processor
-    let sender = neo_audio.start_audio(FeedbackProcessor::default())?;
+    let sender = neo_audio.start_audio(FeedbackProcessor::default())?.0;
 
     // send thread-safe messages to the processor
     sender.send(FeedbackMessage::Gain(0.5)).unwrap();

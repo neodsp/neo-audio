@@ -7,6 +7,7 @@ pub use crate::backends::AudioBackend;
 pub use crate::device_config::DeviceConfig;
 pub use crate::device_name::Device;
 pub use crate::error::NeoAudioError;
+pub use crate::parameters::*;
 pub use crate::NeoAudio;
 pub use crossbeam_channel::{bounded, Receiver, Sender};
 pub use realtime_tools::interleaved_audio::{InterleavedAudio, InterleavedAudioMut};

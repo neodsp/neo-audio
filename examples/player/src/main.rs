@@ -32,7 +32,7 @@ fn main() -> Result<(), NeoAudioError> {
     let mut player = PlayerProcessor::default();
     player.set_audio(stereo_sine);
     player.set_progress_sender(sender);
-    let sender = neo_audio.start_audio(player)?;
+    let (sender, _) = neo_audio.start_audio(player)?;
 
     // send thread-safe messages to the processor
     sender.send(PlayerMessage::Play).unwrap();

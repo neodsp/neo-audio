@@ -5,6 +5,7 @@ members = [
 
   "examples/egui-example",
   "examples/feedback",
+  "examples/feedback-atomic",
   "examples/iced-example",
   "examples/player",
   "examples/tauri-example/src-tauri",

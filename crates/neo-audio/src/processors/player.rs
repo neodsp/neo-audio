@@ -55,6 +55,7 @@ impl PlayerProcessor {
 
 impl AudioProcessor for PlayerProcessor {
     type Message = PlayerMessage;
+    type Parameters = ();
 
     fn prepare(&mut self, _config: crate::prelude::DeviceConfig) {}
 
@@ -112,4 +113,6 @@ impl AudioProcessor for PlayerProcessor {
             self.play = self.looped;
         }
     }
+
+    fn parameters(&self) -> Self::Parameters {}
 }

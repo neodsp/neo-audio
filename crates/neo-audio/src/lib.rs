@@ -8,6 +8,7 @@ pub mod backends;
 pub mod device_config;
 pub mod device_name;
 pub mod error;
+pub mod parameters;
 pub mod prelude;
 #[cfg(feature = "processors")]
 pub mod processors;
@@ -40,11 +41,15 @@ where
         &mut self.backend
     }
 
-    pub fn start_audio<P>(&mut self, mut processor: P) -> Result<Sender<P::Message>, NeoAudioError>
+    pub fn start_audio<Processor>(
+        &mut self,
+        mut processor: Processor,
+    ) -> Result<(Sender<Processor::Message>, Processor::Parameters), NeoAudioError>
     where
-        P: AudioProcessor + Send + 'static,
-        <P as audio_processor::AudioProcessor>::Message: std::marker::Send,
+        Processor: AudioProcessor + Send + 'static,
+        <Processor as audio_processor::AudioProcessor>::Message: std::marker::Send,
     {
+        let params = processor.parameters();
         let (sender, receiver) = crossbeam_channel::bounded(1024);
         processor.prepare(self.backend.config());
         self.backend.start_stream(move |output, input| {
@@ -60,7 +65,7 @@ where
 
             processor.process(output, input);
         })?;
-        Ok(sender)
+        Ok((sender, params))
     }
 
     pub fn stop_audio(&mut self) -> Result<(), NeoAudioError> {
@@ -110,6 +115,7 @@ mod tests {
 
         impl AudioProcessor for MyProcessor {
             type Message = MyMessage;
+            type Parameters = ();
 
             fn prepare(&mut self, config: DeviceConfig) {
                 println!("Prepare is called with {:?}", config);
@@ -134,6 +140,8 @@ mod tests {
                         .for_each(|(o, i)| *o = *i * self.gain);
                 }
             }
+
+            fn parameters(&self) -> Self::Parameters {}
         }
 
         let mut neo_audio = NeoAudio::<PortAudioBackend>::new()?;
@@ -151,7 +159,7 @@ mod tests {
 
         let _selected_output_device = neo_audio.backend().output_device();
 
-        let sender = neo_audio.start_audio(MyProcessor::default())?;
+        let (sender, _params) = neo_audio.start_audio(MyProcessor::default())?;
 
         sender.send(MyMessage::Gain(0.5))?;
 

@@ -171,7 +171,8 @@ impl NeoAudioIcedApp {
                 self.sender = Some(
                     self.neo_audio
                         .start_audio(MyProcessor::new(self.ui_sender.clone()))
-                        .unwrap(),
+                        .unwrap()
+                        .0,
                 );
                 self.audio_running = true;
             }
@@ -312,6 +313,7 @@ impl MyProcessor {
 
 impl AudioProcessor for MyProcessor {
     type Message = MyMessage;
+    type Parameters = ();
 
     fn prepare(&mut self, config: DeviceConfig) {
         self.gain.prepare(config.sample_rate, 100);
@@ -341,4 +343,6 @@ impl AudioProcessor for MyProcessor {
             }
         }
     }
+
+    fn parameters(&self) -> Self::Parameters {}
 }

@@ -20,6 +20,7 @@ impl Default for FeedbackProcessor {
 
 impl AudioProcessor for FeedbackProcessor {
     type Message = FeedbackMessage;
+    type Parameters = ();
 
     fn prepare(&mut self, config: DeviceConfig) {
         println!("Prepare is called with {:?}", config);
@@ -43,4 +44,6 @@ impl AudioProcessor for FeedbackProcessor {
                 .for_each(|(o, i)| *o = *i * self.gain);
         }
     }
+
+    fn parameters(&self) -> Self::Parameters {}
 }

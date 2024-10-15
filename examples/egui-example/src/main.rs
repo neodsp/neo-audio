@@ -167,7 +167,8 @@ impl eframe::App for NeoAudioEguiExample {
                     self.sender = Some(
                         self.neo_audio
                             .start_audio(MyProcessor::new(self.ui_sender.clone()))
-                            .unwrap(),
+                            .unwrap()
+                            .0,
                     );
                     self.audio_running = true;
                 }
@@ -177,8 +178,9 @@ impl eframe::App for NeoAudioEguiExample {
                 .add(egui::Slider::new(&mut self.gain, 0.0..=1.0).text("Gain"))
                 .changed()
             {
-                if let Some(s) = self.sender
-                    .as_ref() { s.send(MyMessage::Gain(self.gain)).unwrap() }
+                if let Some(s) = self.sender.as_ref() {
+                    s.send(MyMessage::Gain(self.gain)).unwrap()
+                }
             }
 
             // update percentage
@@ -229,6 +231,7 @@ impl MyProcessor {
 
 impl AudioProcessor for MyProcessor {
     type Message = MyMessage;
+    type Parameters = ();
 
     fn prepare(&mut self, config: DeviceConfig) {
         self.gain.prepare(config.sample_rate, 100);
@@ -258,4 +261,6 @@ impl AudioProcessor for MyProcessor {
             }
         }
     }
+
+    fn parameters(&self) -> Self::Parameters {}
 }
