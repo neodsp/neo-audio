@@ -262,7 +262,7 @@ impl AudioBackend for PortAudioBackend {
                             false
                         }
                     })
-                    .ok_or(NeoAudioError::OutputDeviceNotFound)?,
+                    .ok_or(NeoAudioError::InputDeviceNotFound)?,
             ),
         };
 
