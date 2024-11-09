@@ -1,13 +1,7 @@
-# neo-audio Tauri Example
+# Tauri + Vanilla
 
-A very basic example on how to interfere with the audio engine from a tauri app.
+This template should help get you started developing with Tauri in vanilla HTML, CSS and Javascript.
 
-Run the project
+## Recommended IDE Setup
 
-```bash
-cd examples/tauri-example/
-npm install
-npm run tauri dev
-```
-
-For more info about settings up tauri go to https://tauri.app/v1/guides/getting-started/prerequisites
+- [VS Code](https://code.visualstudio.com/) + [Tauri](https://marketplace.visualstudio.com/items?itemName=tauri-apps.tauri-vscode) + [rust-analyzer](https://marketplace.visualstudio.com/items?itemName=rust-lang.rust-analyzer)

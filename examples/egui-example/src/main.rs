@@ -1,3 +1,5 @@
+#![cfg_attr(not(debug_assertions), windows_subsystem = "windows")] // hide console window on Windows in release
+
 use eframe::egui;
 use level_meter::level_meter;
 use neo_audio::{
@@ -17,7 +19,7 @@ fn main() {
     eframe::run_native(
         "neo-audio egui example",
         native_options,
-        Box::new(|cc| Box::new(NeoAudioEguiExample::new(cc))),
+        Box::new(|cc| Ok(Box::new(NeoAudioEguiExample::new(cc)))),
     )
     .unwrap();
 }
@@ -177,8 +179,9 @@ impl eframe::App for NeoAudioEguiExample {
                 .add(egui::Slider::new(&mut self.gain, 0.0..=1.0).text("Gain"))
                 .changed()
             {
-                if let Some(s) = self.sender
-                    .as_ref() { s.send(MyMessage::Gain(self.gain)).unwrap() }
+                if let Some(s) = self.sender.as_ref() {
+                    s.send(MyMessage::Gain(self.gain)).unwrap()
+                }
             }
 
             // update percentage
