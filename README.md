@@ -31,7 +31,7 @@ To include it in your project add this to your `Cargo.toml` file:
 
 ```toml
 [dependencies]
-neo-audio = { git = "https://github.com/neodsp/neo-audio", tag = "0.2.0" }
+neo-audio = { git = "https://github.com/neodsp/neo-audio", tag = "0.2.1" }
 ```
 
 Import all necessary functions to use the engine
