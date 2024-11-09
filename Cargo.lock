@@ -1746,7 +1746,7 @@ dependencies = [
 
 [[package]]
 name = "egui-example"
-version = "0.2.0"
+version = "0.2.1"
 dependencies = [
  "eframe",
  "neo-audio",
@@ -2037,7 +2037,7 @@ dependencies = [
 
 [[package]]
 name = "feedback"
-version = "0.2.0"
+version = "0.2.1"
 dependencies = [
  "neo-audio",
 ]
@@ -3003,7 +3003,7 @@ dependencies = [
 
 [[package]]
 name = "iced-example"
-version = "0.2.0"
+version = "0.2.1"
 dependencies = [
  "iced",
  "neo-audio",
@@ -3899,7 +3899,7 @@ dependencies = [
 
 [[package]]
 name = "neo-audio"
-version = "0.2.0"
+version = "0.2.1"
 dependencies = [
  "cpal",
  "crossbeam-channel",
@@ -4741,7 +4741,7 @@ checksum = "d231b230927b5e4ad203db57bbcbee2802f6bce620b1e4a9024a07d94e2907ec"
 
 [[package]]
 name = "player"
-version = "0.2.0"
+version = "0.2.1"
 dependencies = [
  "neo-audio",
 ]
@@ -5093,7 +5093,7 @@ dependencies = [
 
 [[package]]
 name = "realtime-tools"
-version = "0.2.0"
+version = "0.2.1"
 dependencies = [
  "easer",
 ]
