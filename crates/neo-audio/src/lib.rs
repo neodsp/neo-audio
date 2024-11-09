@@ -1,7 +1,7 @@
 use audio_processor::AudioProcessor;
 use backends::AudioBackend;
 use crossbeam_channel::Sender;
-use error::Error;
+use error::NeoAudioError;
 
 pub mod audio_processor;
 pub mod backends;
@@ -26,7 +26,7 @@ impl<B> NeoAudio<B>
 where
     B: AudioBackend,
 {
-    pub fn new() -> Result<Self, Error> {
+    pub fn new() -> Result<Self, NeoAudioError> {
         Ok(Self {
             backend: B::default()?,
         })
@@ -40,7 +40,7 @@ where
         &mut self.backend
     }
 
-    pub fn start_audio<P>(&mut self, mut processor: P) -> Result<Sender<P::Message>, Error>
+    pub fn start_audio<P>(&mut self, mut processor: P) -> Result<Sender<P::Message>, NeoAudioError>
     where
         P: AudioProcessor + Send + 'static,
         <P as audio_processor::AudioProcessor>::Message: std::marker::Send,
@@ -63,7 +63,7 @@ where
         Ok(sender)
     }
 
-    pub fn stop_audio(&mut self) -> Result<(), Error> {
+    pub fn stop_audio(&mut self) -> Result<(), NeoAudioError> {
         self.backend.stop_stream()?;
         self.backend.stream_error()?;
         Ok(())
@@ -93,7 +93,7 @@ mod tests {
 
     #[test]
     #[ignore = "manual test"]
-    fn readme_code_test() -> Result<(), Error> {
+    fn readme_code_test() -> Result<(), NeoAudioError> {
         enum MyMessage {
             Gain(f32),
         }

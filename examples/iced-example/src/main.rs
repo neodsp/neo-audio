@@ -267,14 +267,11 @@ impl NeoAudioIcedApp {
             // level_meter(0.0),
         ]
         .width(Length::Fill)
-        .align_items(iced::Alignment::Center)
         .spacing(10);
 
         container(scrollable(content))
             .width(Length::Fill)
             .height(Length::Fill)
-            .center_x()
-            .center_y()
             .into()
     }
 }

@@ -8,7 +8,8 @@ This is still unstable and early work in progress.
 
 See the examples folder for all example applications.
 For a minimal example check `feedback` and `player`.
-For a full settings menu check `egui-example`.
+For a full settings menu check `egui-example` or `iced-example`.
+For integration in a web-view check the `tauri-example`.
 
 ```bash
 cargo run --bin feedback
@@ -16,6 +17,12 @@ cargo run --bin feedback
 cargo run --bin player
 # or
 cargo run --bin egui-example
+# or
+cargo run --bin iced-example
+# or
+cd examples/tauri-example/
+npm install
+npm run tauri dev
 ```
 
 ## Usage
@@ -137,3 +144,7 @@ sudo dnf install cmake alsa-lib-devel pulseaudio-libs-devel
 ```bash
 sudo apt-get install cmake libasound2-dev libpulse-dev
 ```
+For some examples you need to install the Prerequisited of the UI frameworks
+
+- iced: https://github.com/iced-rs/iced/blob/master/DEPENDENCIES.md
+- Tauri: https://tauri.app/start/prerequisites/

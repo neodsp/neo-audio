@@ -1,7 +1,7 @@
 use crossbeam_channel::SendError;
 
 #[derive(thiserror::Error, Debug, serde::Serialize, serde::Deserialize)]
-pub enum Error {
+pub enum NeoAudioError {
     #[error("Stream is running, please stop stream before changing devices.")]
     StreamRunning,
     #[error("Api not found")]
@@ -30,8 +30,8 @@ pub enum Error {
     Send(String),
 }
 
-impl<T> From<SendError<T>> for Error {
+impl<T> From<SendError<T>> for NeoAudioError {
     fn from(s: SendError<T>) -> Self {
-        Error::Send(s.to_string())
+        NeoAudioError::Send(s.to_string())
     }
 }

@@ -22,13 +22,27 @@ serde = { workspace = true, features = ["serde_derive"] }
 
 # optional dependencies
 rtaudio = { workspace = true, optional = true }
-weresocool_portaudio = { workspace = true, optional = true }
+portaudio = { workspace = true, optional = true }
 cpal = { workspace = true, optional = true }
 ringbuf = { workspace = true, optional = true }
+wasm-bindgen = { version = "0.2.58", optional = true }
+js-sys = { version = "0.3.35", optional = true }
+web-sys = { version = "0.3.35", features = [
+    "AudioContext",
+    "AudioContextOptions",
+    "AudioBuffer",
+    "AudioBufferSourceNode",
+    "AudioNode",
+    "AudioDestinationNode",
+    "Window",
+    "AudioContextState",
+], optional = true }
+
 
 [features]
 default = ["processors", "portaudio-backend"]
-portaudio-backend = ["weresocool_portaudio"]
+portaudio-backend = ["portaudio"]
 rtaudio-backend = ["rtaudio"]
 cpal-backend = ["cpal", "ringbuf"]
 processors = ["dep:ndarray"]
+webaudio = ["dep:wasm-bindgen", "dep:js-sys", "dep:web-sys"]
