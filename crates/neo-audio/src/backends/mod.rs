@@ -115,7 +115,10 @@ mod tests {
     #[test]
     #[ignore = "manual test"]
     fn play_sine() {
+        #[cfg(feature = "portaudio-backend")]
         pub use portaudio_backend::PortAudioBackend as Backend;
+        #[cfg(feature = "rtaudio-backend")]
+        pub use rtaudio_backend::RtAudioBackend as Backend;
 
         let mut audio_engine = Backend::default().unwrap();
         dbg!(audio_engine.config());
@@ -146,7 +149,10 @@ mod tests {
     #[test]
     #[ignore = "manual test"]
     fn feedback() {
+        #[cfg(feature = "portaudio-backend")]
         pub use portaudio_backend::PortAudioBackend as Backend;
+        #[cfg(feature = "rtaudio-backend")]
+        pub use rtaudio_backend::RtAudioBackend as Backend;
 
         let mut audio_engine = Backend::default().unwrap();
         dbg!(audio_engine.config());

@@ -74,7 +74,10 @@ where
 mod tests {
     use std::{thread::sleep, time::Duration};
 
-    use crate::backends::portaudio_backend::PortAudioBackend;
+    #[cfg(feature = "portaudio-backend")]
+    pub use crate::backends::portaudio_backend::PortAudioBackend as Backend;
+    #[cfg(feature = "rtaudio-backend")]
+    pub use crate::backends::rtaudio_backend::RtAudioBackend as Backend;
 
     use crate::prelude::*;
     use crate::{processors::feedback::FeedbackProcessor, NeoAudio};
@@ -82,7 +85,7 @@ mod tests {
     #[test]
     #[ignore = "manual test"]
     fn feedback() {
-        let mut audio = NeoAudio::<PortAudioBackend>::new().unwrap();
+        let mut audio = NeoAudio::<Backend>::new().unwrap();
 
         audio.start_audio(FeedbackProcessor::default()).unwrap();
 
@@ -136,7 +139,7 @@ mod tests {
             }
         }
 
-        let mut neo_audio = NeoAudio::<PortAudioBackend>::new()?;
+        let mut neo_audio = NeoAudio::<Backend>::new()?;
 
         let _output_devices = neo_audio.backend().available_output_devices();
 
