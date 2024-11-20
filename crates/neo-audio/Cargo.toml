@@ -18,7 +18,7 @@ realtime-tools = { workspace = true }
 crossbeam-channel = { workspace = true }
 thiserror = { workspace = true }
 ndarray = { workspace = true, optional = true }
-serde = { workspace = true, features = ["serde_derive"] }
+serde = { workspace = true, features = ["serde_derive"], optional = true }
 
 # optional dependencies
 rtaudio = { workspace = true, optional = true }
@@ -46,3 +46,4 @@ rtaudio-backend = ["rtaudio"]
 cpal-backend = ["cpal", "ringbuf"]
 processors = ["dep:ndarray"]
 webaudio = ["dep:wasm-bindgen", "dep:js-sys", "dep:web-sys"]
+serde = ["dep:serde"]

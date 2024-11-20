@@ -1,6 +1,7 @@
 use crossbeam_channel::SendError;
 
-#[derive(thiserror::Error, Debug, serde::Serialize, serde::Deserialize)]
+#[derive(thiserror::Error, Debug)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub enum NeoAudioError {
     #[error("Stream is running, please stop stream before changing devices.")]
     StreamRunning,
