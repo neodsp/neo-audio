@@ -1,5 +1,7 @@
 # neo-audio
 
+**Notice:** This is soon going ot be integrated in [neort](www.github.com/neodsp/neort)!
+
 A backend-agnostic real-time audio engine that works cross platform.
 
 This is still unstable and early work in progress.
