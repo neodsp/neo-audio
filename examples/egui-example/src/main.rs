@@ -3,7 +3,7 @@
 use eframe::egui;
 use level_meter::level_meter;
 use neo_audio::{
-    backends::portaudio_backend::PortAudioBackend,
+    backends::rtaudio_backend::RtAudioBackend,
     prelude::*,
     processors::player::{bounded, Receiver, Sender},
 };
@@ -25,7 +25,7 @@ fn main() {
 }
 
 struct NeoAudioEguiExample {
-    neo_audio: NeoAudio<PortAudioBackend>,
+    neo_audio: NeoAudio<RtAudioBackend>,
     sender: Option<Sender<MyMessage>>,
     audio_running: bool,
     config: DeviceConfig,
@@ -41,7 +41,7 @@ impl NeoAudioEguiExample {
         // Restore app state using cc.storage (requires the "persistence" feature).
         // Use the cc.gl (a glow::Context) to create graphics shaders and buffers that you can use
         // for e.g. egui::PaintCallback.
-        let neo_audio = NeoAudio::<PortAudioBackend>::new().unwrap();
+        let neo_audio = NeoAudio::<RtAudioBackend>::new().unwrap();
         let backend = neo_audio.backend();
         let (ui_sender, ui_receiver) = bounded(1024);
         let mut input_level = SmoothValue::new(-60.0, Linear::ease_in_out);

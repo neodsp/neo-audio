@@ -5218,8 +5218,7 @@ checksum = "3cd14fd5e3b777a7422cca79358c57a8f6e3a703d9ac187448d0daf220c2407f"
 [[package]]
 name = "rtaudio"
 version = "0.3.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8feeb09f6b328a00b8de5c5674c5e56f6ba74bd622a7501d34dcbc88f94dbfb3"
+source = "git+https://github.com/neodsp/rtaudio-rs#0495b37907d87f0f89a40ec5ca193fdea9c47fc0"
 dependencies = [
  "bitflags 2.6.0",
  "lazy_static",
@@ -5230,8 +5229,7 @@ dependencies = [
 [[package]]
 name = "rtaudio-sys"
 version = "0.3.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5ac12c2a0807bc02b77daad244b0569fe292fc0a536536268ca1c66a994a49c8"
+source = "git+https://github.com/neodsp/rtaudio-sys#c8c2c37bc8907262b0aff7d0015541cb38457ab7"
 dependencies = [
  "cmake",
  "pkg-config",

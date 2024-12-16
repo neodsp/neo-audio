@@ -5,7 +5,7 @@ use iced::{
 };
 // use level_meter::level_meter;
 use neo_audio::{
-    backends::portaudio_backend::PortAudioBackend,
+    backends::rtaudio_backend::RtAudioBackend,
     prelude::*,
     processors::player::{Receiver, Sender},
 };
@@ -39,7 +39,7 @@ enum AppMessage {
 }
 
 struct NeoAudioIcedApp {
-    neo_audio: NeoAudio<PortAudioBackend>,
+    neo_audio: NeoAudio<RtAudioBackend>,
     sender: Option<Sender<MyMessage>>,
     apis: combo_box::State<String>,
     output_devices: combo_box::State<String>,
@@ -57,7 +57,7 @@ struct NeoAudioIcedApp {
 impl NeoAudioIcedApp {
     fn new() -> Self {
         let (sender, receiver) = bounded(1024);
-        let neo_audio = NeoAudio::<PortAudioBackend>::new().unwrap();
+        let neo_audio = NeoAudio::<RtAudioBackend>::new().unwrap();
         Self {
             apis: combo_box::State::new(neo_audio.backend().available_apis()),
             sender: None,

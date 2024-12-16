@@ -40,7 +40,7 @@ web-sys = { version = "0.3.35", features = [
 
 
 [features]
-default = ["processors", "portaudio-backend"]
+default = ["processors", "rtaudio-backend"]
 portaudio-backend = ["portaudio"]
 rtaudio-backend = ["rtaudio"]
 cpal-backend = ["cpal", "ringbuf"]

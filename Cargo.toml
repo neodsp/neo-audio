@@ -35,7 +35,7 @@ crossbeam-channel = "0.5.13"
 easer = "0.3.0"
 ndarray = "0.16.1"
 ringbuf = "0.4.7"
-rtaudio = "0.3.3"
+rtaudio = { git = "https://github.com/neodsp/rtaudio-rs" }
 serde = "1.0.214"
 thiserror = "2.0.1"
 portaudio = "0.8.0"

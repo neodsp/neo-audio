@@ -1,10 +1,8 @@
-use neo_audio::{
-    backends::portaudio_backend::PortAudioBackend, prelude::*, processors::feedback::*,
-};
+use neo_audio::{backends::rtaudio_backend::RtAudioBackend, prelude::*, processors::feedback::*};
 
 fn main() -> Result<(), NeoAudioError> {
     // construct audio engine with selected backend and message type
-    let mut neo_audio = NeoAudio::<PortAudioBackend>::new()?;
+    let mut neo_audio = NeoAudio::<RtAudioBackend>::new()?;
 
     // start the audio engine with an implemented audio processor
     let sender = neo_audio.start_audio(FeedbackProcessor::default())?;

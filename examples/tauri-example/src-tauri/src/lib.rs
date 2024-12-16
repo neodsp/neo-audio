@@ -1,6 +1,6 @@
 use std::sync::Mutex;
 
-use neo_audio::{backends::portaudio_backend::PortAudioBackend, prelude::*};
+use neo_audio::{backends::rtaudio_backend::RtAudioBackend, prelude::*};
 
 #[tauri::command]
 fn greet(name: &str) -> String {
@@ -8,7 +8,7 @@ fn greet(name: &str) -> String {
 }
 
 pub struct State {
-    neo_audio: NeoAudio<PortAudioBackend>,
+    neo_audio: NeoAudio<RtAudioBackend>,
 }
 
 #[tauri::command]
